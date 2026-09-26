@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">التزاماتي</string>
+    <string name="title_activity_main">التزاماتي</string>
+    <string name="package_name">com.khalid.iltizamati</string>
+    <string name="custom_url_scheme">com.khalid.iltizamati</string>
+</resources>
