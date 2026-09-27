@@ -938,7 +938,9 @@ async function renderHomeExpenses() {
     const card = document.createElement('div'); card.className='card card-row';
     card.innerHTML = `<span class="cat-icon" style="background:${meta.color}22;color:${meta.color}">${meta.icon}</span>
       <div style="flex:1"><div class="card-title">${item.name} — ${fmtMoney(item.amount)} ريال</div><div class="card-sub">${catName} · ${item.date}</div></div>`;
-    return card;
+    const btn = document.createElement('button'); btn.textContent='حذف'; btn.className='delete-btn no-print';
+    btn.onclick = async () => { await db.expenses.update(item.id,{active:false}); await renderExpenseList(); await renderDashboard(); };
+    card.appendChild(btn); return card;
   }, 'لا يوجد مصروفات بعد');
 }
 document.getElementById('expense-form').addEventListener('submit', async e => {
