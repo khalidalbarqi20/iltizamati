@@ -70,10 +70,13 @@ p { margin:4px 0; }
 .hero-content { position:relative; flex:1; min-width:0; }
 .hero-top-row { display:flex; align-items:center; gap:8px; }
 .hero-label { font-size:0.85rem; opacity:0.9; font-weight:600; }
+.hero-sublabel { font-size:0.7rem; font-weight:500; opacity:0.75; }
 .hero-eye { background:rgba(255,255,255,0.18); border:none; width:26px; height:26px; border-radius:50%; color:inherit; font-size:0.8rem; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
 .hero-amount { font-size:2.2rem; font-weight:800; margin:2px 0 12px; letter-spacing:-0.02em; }
 .hero-amount.blurred { filter:blur(9px); user-select:none; }
 .hero-badge { display:inline-block; background:rgba(255,255,255,0.18); padding:5px 12px; border-radius:20px; font-size:0.76rem; font-weight:700; }
+.hero-projected { margin-top:8px; font-size:0.76rem; opacity:0.85; }
+.hero-projected b { font-weight:800; }
 .hero-illustration { width:74px; height:74px; flex-shrink:0; opacity:0.95; position:relative; }
 
 /* ===== Stat row ===== */
@@ -422,6 +425,7 @@ input:checked + .toggle-slider::before { transform:translateX(-22px); }
         </div>
         <div class="hero-amount" id="hero-available">0 ريال</div>
         <span class="hero-badge" id="hero-badge">جاري الحساب...</span>
+        <div class="hero-projected" id="hero-projected"></div>
       </div>
       <svg class="hero-illustration" viewBox="0 0 100 100" aria-hidden="true">
         <rect x="8" y="30" width="84" height="56" rx="12" fill="rgba(255,255,255,0.16)"/>
@@ -1531,6 +1535,19 @@ async function computeCoreNumbers(monthStr) {
   const available = totalIncome - totalObligationMonthly - totalExpense - totalSavingThisMonth;
   return { totalIncome, totalExpense, totalObligationMonthly, totalSavingThisMonth, available };
 }
+async function computeMonthEndNet(monthStr) {
+  const totalIncome = (await db.income.toArray()).filter(i=>i.active!==false).reduce((s,i)=>s+i.amount,0);
+  const totalExpenseFull = (await db.expenses.toArray()).filter(e=>e.active!==false && e.date.startsWith(monthStr)).reduce((s,e)=>s+e.amount,0);
+  const obligations = (await db.obligations.toArray()).filter(o=>o.active!==false && o.status!=='closed');
+  let totalObligationFull = 0;
+  for (const ob of obligations) {
+    const { installments } = await getObligationFinancials(ob);
+    const dueThisMonth = installments.some(i => i.due_date.startsWith(monthStr) && i.status!=='cancelled');
+    if (dueThisMonth) totalObligationFull += ob.installment_amount;
+  }
+  const plannedSavingFull = (await db.savingsGoals.toArray()).filter(g=>g.active!==false).reduce((s,g)=>s+g.monthly_contribution,0);
+  return totalIncome - totalObligationFull - totalExpenseFull - plannedSavingFull;
+}
 async function renderDashboard() {
   const thisMonth = todayStr().slice(0,7);
   const { totalIncome, totalExpense, totalObligationMonthly, available } = await computeCoreNumbers(thisMonth);
@@ -1548,6 +1565,9 @@ async function renderDashboard() {
   else if (ratio >= 0.3) badgeEl.textContent = '✅ ممتاز، وضع مالي مستقر';
   else if (ratio >= 0.1) badgeEl.textContent = '👍 جيد، استمر بالتحكم';
   else badgeEl.textContent = 'ℹ️ المتاح محدود هذا الشهر';
+
+  const monthEndNet = await computeMonthEndNet(thisMonth);
+  document.getElementById('hero-projected').innerHTML = 'الرصيد الصافي بعد كل التزامات ومصروفات وادخار الشهر: <b>' + fmtMoney(monthEndNet) + ' ريال</b>';
 
   const spentSoFar = Math.max(0, totalIncome - available);
   const pct = totalIncome>0 ? Math.min(100,(spentSoFar/totalIncome)*100) : 0;
