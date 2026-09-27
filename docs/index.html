@@ -8,38 +8,51 @@
 <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
 <style>
 :root {
-  --bg:#0b1220; --surface:#141b2d; --surface2:#1a2338; --text:#eef1f6; --muted:#8b93a7; --border:#232c42;
-  --primary:#00c2b8; --primary2:#0f6fff;
-  --income:#43d17a; --income-bg:#123326;
-  --expense:#ff6b6b; --expense-bg:#3a1414;
-  --obligation:#a78bfa; --obligation-bg:#241a3f;
-  --available:#42a5f5; --available-bg:#0e2c46;
-  --radius:18px; --radius-sm:12px;
-  --shadow:0 4px 16px rgba(0,0,0,0.35);
+  --ink:#0b0e13; --surface:#151a22; --surface2:#1c222c; --surface3:#20272f;
+  --text:#eef0f3; --muted:#8b93a1; --border:#262d38;
+  --gold:#cf9a4a; --gold-soft:#e8c988; --gold-deep:#8a6423;
+  --sage:#5fae82; --sage-bg:#132621;
+  --clay:#c9645a; --clay-bg:#2c1815;
+  --lilac:#9a8bc9; --lilac-bg:#1e1a2e;
+  --sky:#5aa3d0; --sky-bg:#132330;
+  --bg:var(--ink);
+  --income:var(--sage); --income-bg:var(--sage-bg);
+  --expense:var(--clay); --expense-bg:var(--clay-bg);
+  --obligation:var(--lilac); --obligation-bg:var(--lilac-bg);
+  --available:var(--sky); --available-bg:var(--sky-bg);
+  --primary:var(--gold); --primary2:var(--gold-soft);
+  --radius:22px; --radius-sm:14px;
+  --shadow: 0 10px 26px rgba(0,0,0,0.28);
+  --shadow-hero: 0 18px 40px -14px rgba(207,154,74,0.4), 0 6px 16px rgba(0,0,0,0.35);
 }
 [data-theme="light"] {
-  --bg:#f4f6f9; --surface:#ffffff; --surface2:#f7f8fb; --text:#171a21; --muted:#727888; --border:#e9ecf2;
-  --income-bg:#e8f8ee; --expense-bg:#fdecec; --obligation-bg:#f1ecfb; --available-bg:#e8f2fd;
-  --shadow:0 2px 10px rgba(0,0,0,0.08);
+  --bg:#f6f4ef; --surface:#ffffff; --surface2:#f1efe8; --surface3:#ebe8df; --text:#20242c; --muted:#767b87; --border:#e4e0d6;
+  --income-bg:#e6f4ec; --expense-bg:#fbeae7; --obligation-bg:#efeaf9; --available-bg:#e8f1f8;
+  --shadow: 0 6px 18px rgba(60,50,20,0.09);
+  --shadow-hero: 0 14px 30px -10px rgba(180,130,50,0.35), 0 4px 12px rgba(0,0,0,0.08);
 }
 * { box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
 html, body { overflow-x:hidden; max-width:100vw; }
 body {
   font-family: 'Cairo', system-ui, -apple-system, sans-serif; margin:0; background:var(--bg); color:var(--text);
-  padding-bottom:96px; transition: background 0.3s ease, color 0.3s ease;
+  padding-bottom:100px; transition: background 0.3s ease, color 0.3s ease; font-variant-numeric: tabular-nums;
 }
-h1,h2,h3 { margin:0 0 4px 0; }
-h2 { font-size:1.1rem; margin:22px 0 10px; }
-h3 { font-size:0.9rem; color:var(--muted); margin:14px 0 8px; font-weight:600; }
+h1,h2,h3 { margin:0 0 4px 0; letter-spacing:-0.01em; }
+h2 { font-size:1.08rem; margin:26px 0 12px; font-weight:800; }
+h3 { font-size:0.86rem; color:var(--muted); margin:16px 0 8px; font-weight:600; }
 p { margin:4px 0; }
+:focus-visible { outline:2px solid var(--gold); outline-offset:2px; }
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration:0.01ms !important; animation-iteration-count:1 !important; transition-duration:0.01ms !important; }
+}
 
-@keyframes fadeSlide { from{opacity:0; transform:translateY(10px);} to{opacity:1; transform:translateY(0);} }
-@keyframes popIn { from{opacity:0; transform:scale(0.94);} to{opacity:1; transform:scale(1);} }
+@keyframes fadeSlide { from{opacity:0; transform:translateY(8px);} to{opacity:1; transform:translateY(0);} }
+@keyframes popIn { from{opacity:0; transform:scale(0.96);} to{opacity:1; transform:scale(1);} }
 
 .app-container { padding:16px; max-width:520px; margin:0 auto; }
-.top-bar { display:flex; align-items:center; justify-content:space-between; margin-bottom:10px; padding-top:2px; }
-.top-bar h1 { font-size:1.25rem; }
-.icon-btn { background:var(--surface); border:1px solid var(--border); width:38px; height:38px; border-radius:50%; font-size:1rem; display:flex; align-items:center; justify-content:center; color:var(--text); box-shadow:var(--shadow); }
+.top-bar { display:flex; align-items:center; justify-content:space-between; margin-bottom:14px; padding-top:2px; }
+.top-bar h1 { font-size:1.2rem; font-weight:800; letter-spacing:-0.01em; }
+.icon-btn { background:var(--surface); border:1px solid var(--border); width:38px; height:38px; border-radius:50%; font-size:1rem; display:flex; align-items:center; justify-content:center; color:var(--text); }
 .icon-btn:active { transform:scale(0.92); }
 
 #status { font-size:0.75rem; color:var(--muted); margin-bottom:6px; }
@@ -49,51 +62,51 @@ p { margin:4px 0; }
 .view.active { display:block; animation: fadeSlide 0.3s ease; }
 
 /* ===== Hero ===== */
-.hero-card { background: linear-gradient(135deg, var(--primary), var(--primary2)); border-radius: var(--radius); padding:20px; color:white; margin-bottom:14px; box-shadow:0 8px 24px rgba(0,150,180,0.3); animation: popIn 0.35s ease; }
-.hero-label { font-size:0.85rem; opacity:0.9; }
-.hero-amount { font-size:2rem; font-weight:800; margin:4px 0 10px; }
-.hero-badge { display:inline-block; background:rgba(255,255,255,0.22); padding:5px 12px; border-radius:20px; font-size:0.78rem; }
+.hero-card { position:relative; overflow:hidden; background: linear-gradient(135deg, var(--gold-deep) 0%, var(--gold) 60%, var(--gold-soft) 100%); border-radius: var(--radius); padding:22px; color:#1a1206; margin-bottom:16px; box-shadow:var(--shadow-hero); animation: popIn 0.35s ease; }
+.hero-card::before { content:""; position:absolute; inset:0; background: radial-gradient(140% 100% at 100% 0%, rgba(255,255,255,0.28), transparent 55%); pointer-events:none; }
+.hero-label { font-size:0.85rem; opacity:0.85; position:relative; font-weight:600; }
+.hero-amount { font-size:2.3rem; font-weight:800; margin:2px 0 12px; position:relative; letter-spacing:-0.02em; }
+.hero-badge { display:inline-block; background:rgba(26,18,6,0.16); padding:5px 12px; border-radius:20px; font-size:0.78rem; position:relative; font-weight:700; }
 
 /* ===== Stat row ===== */
 .stat-row { display:grid; grid-template-columns:repeat(4,1fr); gap:8px; margin-bottom:16px; }
-.stat-card { border-radius:var(--radius-sm); padding:10px 6px; text-align:center; animation:popIn 0.3s ease; cursor:pointer; }
+.stat-card { border-radius:var(--radius-sm); padding:12px 6px; text-align:center; animation:popIn 0.3s ease; cursor:pointer; border:1px solid transparent; }
 .stat-card:active { transform:scale(0.95); }
-.stat-card .ic { font-size:1.2rem; display:block; margin-bottom:4px; }
+.stat-card .ic { font-size:1.15rem; display:block; margin-bottom:4px; }
 .stat-card .num { font-size:0.92rem; font-weight:800; display:block; }
-.stat-card .lbl { font-size:0.66rem; opacity:0.85; margin-top:2px; }
-.stat-saving { background:#3d2a10; color:#ffb74d; } .stat-expense { background:var(--expense-bg); color:var(--expense); }
+.stat-card .lbl { font-size:0.65rem; opacity:0.85; margin-top:2px; }
+.stat-saving { background:var(--sage-bg); color:var(--gold-soft); } .stat-expense { background:var(--expense-bg); color:var(--expense); }
 .stat-obligation { background:var(--obligation-bg); color:var(--obligation); } .stat-income { background:var(--income-bg); color:var(--income); }
-[data-theme="light"] .stat-saving { background:#fff3e0; color:#e65100; }
+[data-theme="light"] .stat-saving { color:var(--gold-deep); }
 
 /* ===== Widgets ===== */
-.widget { background:var(--surface); border-radius:var(--radius); padding:14px; margin-bottom:12px; box-shadow:var(--shadow); animation:fadeSlide 0.3s ease; }
-.widget-title { font-size:0.82rem; color:var(--muted); margin-bottom:6px; }
-.progress-track { background:var(--surface2); border-radius:8px; height:10px; overflow:hidden; margin:8px 0 4px; }
-.progress-fill { background:linear-gradient(90deg,var(--primary),var(--primary2)); height:100%; transition:width 0.6s ease; border-radius:8px; }
+.widget { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:15px; margin-bottom:12px; animation:fadeSlide 0.3s ease; }
+.widget-title { font-size:0.82rem; color:var(--muted); margin-bottom:8px; font-weight:600; }
+.progress-track { background:var(--surface2); border-radius:8px; height:9px; overflow:hidden; margin:8px 0 4px; }
+.progress-fill { background:linear-gradient(90deg,var(--gold),var(--gold-soft)); height:100%; transition:width 0.6s ease; border-radius:8px; }
 .progress-caption { display:flex; justify-content:space-between; font-size:0.75rem; color:var(--muted); }
 
-.next-due-card { background:linear-gradient(135deg,#ff5e7e,#ff8a65); border-radius:var(--radius); padding:14px; color:white; margin-bottom:12px; box-shadow:0 6px 18px rgba(255,90,110,0.3); }
-.next-due-card .badge { background:rgba(255,255,255,0.25); display:inline-block; padding:3px 10px; border-radius:14px; font-size:0.72rem; margin-bottom:6px; }
+.next-due-card { background:linear-gradient(135deg,var(--clay),#e0a15c); border-radius:var(--radius); padding:15px; color:#2a1410; margin-bottom:12px; }
+.next-due-card .badge { background:rgba(42,20,16,0.16); display:inline-block; padding:3px 10px; border-radius:14px; font-size:0.72rem; margin-bottom:6px; font-weight:700; }
 .next-due-card .title { font-weight:800; font-size:1rem; }
-.next-due-card .amt { font-size:0.85rem; opacity:0.95; margin-top:2px; }
+.next-due-card .amt { font-size:0.85rem; opacity:0.9; margin-top:2px; }
 
-.daily-card { background:linear-gradient(135deg,#00c2b8,#26a69a); border-radius:var(--radius); padding:14px; color:white; margin-bottom:16px; box-shadow:0 6px 18px rgba(0,180,170,0.3); }
+.daily-card { background:linear-gradient(135deg,var(--sky),var(--sage)); border-radius:var(--radius); padding:15px; color:#0c2018; margin-bottom:16px; }
 .daily-card .amt { font-size:1.5rem; font-weight:800; }
-.daily-card .cap { font-size:0.78rem; opacity:0.9; }
+.daily-card .cap { font-size:0.78rem; opacity:0.85; }
 
-.section-head { display:flex; justify-content:space-between; align-items:center; margin-top:22px; }
-.link-btn { background:none; border:none; color:var(--primary); font-size:0.82rem; font-weight:700; }
+.section-head { display:flex; justify-content:space-between; align-items:center; margin-top:26px; }
+.link-btn { background:none; border:none; color:var(--gold); font-size:0.82rem; font-weight:700; }
 
 /* ===== Cards & Lists ===== */
-.card { background:var(--surface); border-radius:var(--radius); padding:14px; margin-bottom:10px; box-shadow:var(--shadow); animation: fadeSlide 0.3s ease; }
+.card { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:15px; margin-bottom:10px; animation: fadeSlide 0.3s ease; }
 .card-row { display:flex; justify-content:space-between; align-items:center; gap:10px; }
 .card-title { font-weight:700; font-size:0.95rem; }
 .card-sub { font-size:0.78rem; color:var(--muted); margin-top:2px; }
 .cat-icon { width:38px; height:38px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:1.05rem; flex-shrink:0; }
-.chip { display:inline-block; padding:2px 9px; border-radius:20px; font-size:0.7rem; font-weight:700; }
-.chip-due { background:#3a2a10; color:#ffb74d; } .chip-late { background:var(--expense-bg); color:var(--expense); } .chip-paid { background:var(--income-bg); color:var(--income); }
-[data-theme="light"] .chip-due { background:#fff3e0; color:#e65100; }
-.empty-hint { text-align:center; color:var(--muted); font-size:0.85rem; padding:20px 0; }
+.chip { display:inline-block; padding:3px 10px; border-radius:20px; font-size:0.7rem; font-weight:700; }
+.chip-due { background:var(--sage-bg); color:var(--gold-soft); } .chip-late { background:var(--expense-bg); color:var(--expense); } .chip-paid { background:var(--income-bg); color:var(--income); }
+.empty-hint { text-align:center; color:var(--muted); font-size:0.85rem; padding:24px 0; }
 
 /* ===== Forms ===== */
 form { display:flex; flex-direction:column; gap:10px; margin-bottom:16px; }
@@ -101,37 +114,37 @@ form input, form select, form textarea {
   padding:12px 14px; font-size:0.92rem; border:1.5px solid var(--border); border-radius:var(--radius-sm);
   background:var(--surface2); color:var(--text); font-family:inherit; transition:border-color 0.2s ease, box-shadow 0.2s ease;
 }
-form input:focus, form select:focus, form textarea:focus { outline:none; border-color:var(--primary); box-shadow:0 0 0 3px rgba(0,194,184,0.15); }
+form input:focus, form select:focus, form textarea:focus { outline:none; border-color:var(--gold); box-shadow:0 0 0 3px rgba(207,154,74,0.18); }
 button { cursor:pointer; transition: all 0.2s ease; font-family:inherit; }
 button:active { transform:scale(0.97); }
 .btn { padding:13px; font-size:0.92rem; font-weight:700; color:white; border:none; border-radius:var(--radius-sm); }
-.btn-income { background:var(--income); color:#06210f; } .btn-expense { background:var(--expense); }
-.btn-obligation { background:var(--obligation); } .btn-recurring { background:#00897b; }
-.btn-primary { background:var(--primary); }
+.btn-income { background:var(--sage); color:#06210f; } .btn-expense { background:var(--clay); }
+.btn-obligation { background:var(--lilac); color:#1c1530; } .btn-recurring { background:#3f8f8a; }
+.btn-primary { background:var(--gold); color:#2a1c06; }
 
 .delete-btn, .pay-btn { border:none; border-radius:8px; padding:7px 11px; font-size:0.78rem; color:white; flex-shrink:0; }
-.delete-btn { background:#e53935; } .pay-btn { background:#1e88e5; }
+.delete-btn { background:var(--clay); } .pay-btn { background:var(--sky); }
 
 .total-line { font-weight:700; font-size:0.95rem; margin-top:10px; }
-.section-divider { border:none; border-top:1px solid var(--border); margin:26px 0; }
+.section-divider { border:none; border-top:1px solid var(--border); margin:28px 0; }
 
 /* ===== Category grid picker ===== */
 .cat-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:10px; margin:4px 0; }
 .cat-pick { display:flex; flex-direction:column; align-items:center; gap:5px; background:none; border:2px solid transparent; border-radius:12px; padding:8px 2px; }
 .cat-pick .circle { width:44px; height:44px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:1.2rem; }
 .cat-pick .lbl { font-size:0.64rem; color:var(--muted); text-align:center; }
-.cat-pick.selected { border-color:var(--primary); }
+.cat-pick.selected { border-color:var(--gold); }
 .cat-pick.selected .lbl { color:var(--text); font-weight:700; }
 
 .pill-grid { display:flex; flex-wrap:wrap; gap:8px; margin:4px 0; }
 .pill-btn { background:var(--surface2); border:1.5px solid var(--border); color:var(--text); padding:10px 14px; border-radius:20px; font-size:0.85rem; font-family:inherit; }
-.pill-btn.selected { background:var(--primary); border-color:var(--primary); color:white; font-weight:700; }
+.pill-btn.selected { background:var(--gold); border-color:var(--gold); color:#2a1c06; font-weight:700; }
 
 /* ===== Obligation card ===== */
-.stats-grid { display:grid; grid-template-columns:1fr 1fr; gap:6px; font-size:0.83rem; margin:10px 0; }
+.stats-grid { display:grid; grid-template-columns:1fr 1fr; gap:8px; font-size:0.83rem; margin:12px 0; }
 .stats-grid .label { color:var(--muted); }
 .stats-grid .value { font-weight:700; }
-.toggle-btn { background:var(--surface2); border:none; border-radius:10px; padding:9px; width:100%; margin-top:8px; display:flex; justify-content:center; align-items:center; gap:6px; color:var(--text); font-size:0.83rem; }
+.toggle-btn { background:var(--surface2); border:none; border-radius:11px; padding:9px; width:100%; margin-top:8px; display:flex; justify-content:center; align-items:center; gap:6px; color:var(--text); font-size:0.83rem; }
 .toggle-btn .arrow { transition:transform 0.3s ease; }
 .toggle-btn.open .arrow { transform:rotate(180deg); }
 .installments-box { display:none; }
@@ -139,20 +152,20 @@ button:active { transform:scale(0.97); }
 .installments-scroll { padding-bottom:6px; }
 .ob-body { display:none; }
 .ob-body.open { display:block; margin-top:10px; }
-.installment-row { display:flex; justify-content:space-between; align-items:center; padding:9px 2px; border-bottom:1px solid var(--border); font-size:0.83rem; }
+.installment-row { display:flex; justify-content:space-between; align-items:center; padding:10px 2px; border-bottom:1px solid var(--border); font-size:0.83rem; }
 
-.early-box { margin-top:12px; padding:12px; background:var(--surface2); border-radius:var(--radius-sm); }
-.early-box h4 { margin:0 0 8px; font-size:0.85rem; }
+.early-box { margin-top:14px; padding:13px; background:var(--surface2); border-radius:var(--radius-sm); }
+.early-box h4 { margin:0 0 8px; font-size:0.85rem; color:var(--text); }
 .early-row { display:flex; gap:6px; margin-bottom:6px; }
 .early-row input { flex:1; min-width:0; padding:9px; border:1px solid var(--border); border-radius:8px; background:var(--surface); color:var(--text); }
 .early-row button { padding:9px 12px; border:none; border-radius:8px; color:white; font-size:0.78rem; }
-.btn-extra { background:#00838f; } .btn-payoff { background:#ad1457; }
+.btn-extra { background:var(--sky); color:#0c2030; } .btn-payoff { background:var(--lilac); color:#1c1530; }
 .payoff-result { font-size:0.8rem; margin-top:6px; padding:9px; border-radius:8px; }
 .payoff-save { background:var(--income-bg); color:var(--income); } .payoff-cost { background:var(--expense-bg); color:var(--expense); } .payoff-neutral { background:var(--surface2); color:var(--muted); }
 label.checkbox-line { display:flex; align-items:center; gap:6px; font-size:0.8rem; margin-top:6px; color:var(--muted); }
 
 /* ===== Suggestions ===== */
-.suggestion-card { background:var(--surface); border-radius:var(--radius); padding:14px; margin-bottom:10px; cursor:pointer; box-shadow:var(--shadow); }
+.suggestion-card { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:15px; margin-bottom:10px; cursor:pointer; }
 .suggestion-head { display:flex; align-items:center; justify-content:space-between; }
 .suggestion-head .title-row { display:flex; align-items:center; gap:10px; }
 .suggestion-icon { font-size:1.3rem; }
@@ -191,16 +204,16 @@ label.checkbox-line { display:flex; align-items:center; gap:6px; font-size:0.8re
 .cal-grid { display:grid; grid-template-columns:repeat(7,1fr); gap:4px; text-align:center; }
 .cal-dow { font-size:0.7rem; color:var(--muted); padding:4px 0; }
 .cal-day { position:relative; padding:8px 0; border-radius:10px; font-size:0.82rem; background:var(--surface2); }
-.cal-day.today { border:1.5px solid var(--primary); font-weight:800; }
-.cal-day.selected { background:var(--primary); color:white; }
+.cal-day.today { border:1.5px solid var(--gold); font-weight:800; }
+.cal-day.selected { background:var(--gold); color:#2a1c06; }
 .cal-day.empty { background:none; }
-.cal-dot { position:absolute; bottom:3px; left:50%; transform:translateX(-50%); width:5px; height:5px; border-radius:50%; background:var(--expense); }
+.cal-dot { position:absolute; bottom:3px; left:50%; transform:translateX(-50%); width:5px; height:5px; border-radius:50%; background:var(--clay); }
 .cal-events { margin-top:14px; }
 
 /* ===== Drawer ===== */
 .drawer-overlay { position:fixed; inset:0; background:rgba(0,0,0,0.5); opacity:0; pointer-events:none; transition:opacity 0.3s ease; z-index:60; }
 .drawer-overlay.open { opacity:1; pointer-events:auto; }
-.drawer { position:fixed; top:0; right:0; height:100%; width:78%; max-width:300px; background:var(--surface); transform:translateX(100%); transition:transform 0.32s cubic-bezier(.2,.8,.2,1); z-index:70; padding:20px; box-shadow:-4px 0 20px rgba(0,0,0,0.3); overflow-y:auto; }
+.drawer { position:fixed; top:0; right:0; height:100%; width:78%; max-width:300px; background:var(--surface); transform:translateX(100%); transition:transform 0.32s cubic-bezier(.2,.8,.2,1); z-index:70; padding:20px; box-shadow:-4px 0 24px rgba(0,0,0,0.3); overflow-y:auto; }
 .drawer.open { transform:translateX(0); }
 .drawer-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; }
 .drawer-header h2 { font-size:1.1rem; }
@@ -210,18 +223,18 @@ label.checkbox-line { display:flex; align-items:center; gap:6px; font-size:0.8re
 .drawer-item .emoji { font-size:1.7rem; }
 
 /* ===== Bottom Nav + FAB ===== */
-.bottom-nav { position:fixed; bottom:0; left:0; right:0; background:var(--surface); border-top:1px solid var(--border); display:flex; justify-content:space-around; align-items:flex-end; padding:8px 6px 10px; z-index:30; box-shadow:0 -2px 16px rgba(0,0,0,0.15); }
+.bottom-nav { position:fixed; bottom:0; left:0; right:0; background:var(--surface); border-top:1px solid var(--border); display:flex; justify-content:space-around; align-items:flex-end; padding:8px 6px 10px; z-index:30; }
 .nav-item { background:none; border:none; display:flex; flex-direction:column; align-items:center; gap:4px; font-size:0.64rem; color:var(--muted); padding:6px 4px; flex:1; transition:color 0.2s ease, background 0.2s ease; font-family:inherit; }
 .nav-item .ic { font-size:1.25rem; background:var(--surface2); border-radius:12px; width:40px; height:40px; display:flex; align-items:center; justify-content:center; transition:background 0.2s ease, transform 0.15s ease; }
-.nav-item.active .ic { background:var(--primary); color:white; }
+.nav-item.active .ic { background:var(--gold); color:#2a1c06; }
 .nav-item:active .ic { transform:scale(0.9); }
-.nav-item.active { color:var(--primary); font-weight:700; }
-.nav-fab { position:relative; top:-20px; background:linear-gradient(135deg,var(--primary),var(--primary2)); color:white; width:60px; height:60px; border-radius:50%; display:flex; align-items:center; justify-content:center; box-shadow:0 6px 18px rgba(0,150,180,0.5); border:4px solid var(--bg); font-size:1.8rem; flex-shrink:0; }
+.nav-item.active { color:var(--gold); font-weight:700; }
+.nav-fab { position:relative; top:-20px; background:linear-gradient(135deg,var(--gold-deep),var(--gold)); color:#2a1c06; width:60px; height:60px; border-radius:50%; display:flex; align-items:center; justify-content:center; box-shadow:0 8px 20px rgba(207,154,74,0.45); border:4px solid var(--bg); font-size:1.8rem; flex-shrink:0; }
 
 /* ===== Quick add sheet ===== */
 .sheet-overlay { position:fixed; inset:0; background:rgba(0,0,0,0.5); opacity:0; pointer-events:none; transition:opacity 0.3s ease; z-index:65; }
 .sheet-overlay.open { opacity:1; pointer-events:auto; }
-.sheet { position:fixed; bottom:0; left:0; right:0; background:var(--surface); border-radius:22px 22px 0 0; padding:20px; z-index:75; transform:translateY(100%); transition:transform 0.32s cubic-bezier(.2,.8,.2,1); box-shadow:0 -6px 24px rgba(0,0,0,0.3); }
+.sheet { position:fixed; bottom:0; left:0; right:0; background:var(--surface); border-radius:24px 24px 0 0; padding:20px; z-index:75; transform:translateY(100%); transition:transform 0.32s cubic-bezier(.2,.8,.2,1); box-shadow:0 -8px 28px rgba(0,0,0,0.3); }
 .sheet.open { transform:translateY(0); }
 .sheet-handle { width:40px; height:4px; background:var(--border); border-radius:4px; margin:0 auto 16px; }
 .sheet-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; }
@@ -238,18 +251,18 @@ label.checkbox-line { display:flex; align-items:center; gap:6px; font-size:0.8re
 .modal-header h2 { font-size:1.15rem; margin:0; }
 
 /* ===== Settings ===== */
-.settings-row { display:flex; justify-content:space-between; align-items:center; background:var(--surface); border-radius:var(--radius-sm); padding:14px; margin-bottom:10px; box-shadow:var(--shadow); }
+.settings-row { display:flex; justify-content:space-between; align-items:center; background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-sm); padding:14px; margin-bottom:10px; }
 .toggle-switch { position:relative; width:48px; height:26px; }
 .toggle-switch input { opacity:0; width:0; height:0; }
 .toggle-slider { position:absolute; inset:0; background:var(--border); border-radius:20px; cursor:pointer; transition:0.3s; }
 .toggle-slider::before { content:""; position:absolute; width:20px; height:20px; left:3px; top:3px; background:white; border-radius:50%; transition:0.3s; }
-input:checked + .toggle-slider { background:var(--primary); }
+input:checked + .toggle-slider { background:var(--gold); }
 input:checked + .toggle-slider::before { transform:translateX(-22px); }
-.reset-btn-settings { background:var(--expense); color:white; border:none; border-radius:var(--radius-sm); padding:12px; width:100%; font-size:0.88rem; margin-top:6px; }
-.export-btn-settings { background:#37474f; color:white; border:none; border-radius:var(--radius-sm); padding:12px; width:100%; font-size:0.88rem; margin-bottom:10px; }
+.reset-btn-settings { background:var(--clay); color:white; border:none; border-radius:var(--radius-sm); padding:12px; width:100%; font-size:0.88rem; margin-top:6px; }
+.export-btn-settings { background:var(--surface3); color:var(--text); border:1px solid var(--border); border-radius:var(--radius-sm); padding:12px; width:100%; font-size:0.88rem; margin-bottom:10px; }
 
 /* ===== Toast ===== */
-#toast { position:fixed; bottom:104px; left:50%; transform:translateX(-50%) translateY(20px); background:#222; color:white; padding:12px 20px; border-radius:30px; font-size:0.83rem; opacity:0; pointer-events:none; transition:all 0.3s ease; z-index:95; }
+#toast { position:fixed; bottom:104px; left:50%; transform:translateX(-50%) translateY(20px); background:var(--surface3); color:var(--text); border:1px solid var(--border); padding:12px 20px; border-radius:30px; font-size:0.83rem; opacity:0; pointer-events:none; transition:all 0.3s ease; z-index:95; }
 #toast.show { opacity:1; transform:translateX(-50%) translateY(0); }
 
 @media print {
@@ -335,6 +348,14 @@ input:checked + .toggle-slider::before { transform:translateX(-22px); }
     <h3 style="margin-top:0">نوع الالتزام</h3>
     <div class="pill-grid" id="ob-type-grid"></div>
     <input type="hidden" id="ob-type" value="loan">
+    <h3 style="margin-bottom:2px">دورية الاستحقاق</h3>
+    <div class="pill-grid" id="ob-frequency-grid">
+      <button type="button" class="pill-btn selected" data-val="monthly">شهري</button>
+      <button type="button" class="pill-btn" data-val="quarterly">كل 3 أشهر</button>
+      <button type="button" class="pill-btn" data-val="semiannual">نصف سنوي</button>
+      <button type="button" class="pill-btn" data-val="yearly">سنوي</button>
+    </div>
+    <input type="hidden" id="ob-frequency" value="monthly">
     <input type="number" id="ob-total" placeholder="إجمالي المبلغ" required min="0" step="0.01">
     <input type="number" id="ob-installment" placeholder="قيمة القسط" required min="0" step="0.01">
     <input type="number" id="ob-count" placeholder="عدد الأقساط" required min="1" step="1">
@@ -496,7 +517,7 @@ input:checked + .toggle-slider::before { transform:translateX(-22px); }
 
   <!-- ============ الرؤية ============ -->
   <div class="view" id="view-vision">
-    <h2>الرؤية — الـ24 شهر القادمة</h2>
+    <h2>الرؤية — الـ60 شهر القادمة</h2>
     <p class="card-sub" style="margin-bottom:14px">توقّع مبني على دخلك الحالي، أقساطك المجدولة فعلياً، مصروفاتك المتكررة، وادخارك المخطط — لا يشمل مصروفات مستقبلية غير متكررة.</p>
     <div id="vision-list"></div>
   </div>
@@ -507,6 +528,12 @@ input:checked + .toggle-slider::before { transform:translateX(-22px); }
     <div class="settings-row"><span>الوضع الداكن</span><label class="toggle-switch"><input type="checkbox" id="dark-mode-toggle"><span class="toggle-slider"></span></label></div>
     <h3 style="margin-top:24px">البيانات</h3>
     <button class="export-btn-settings" id="export-pdf">🖨️ تصدير PDF</button>
+    <h3 style="margin-top:24px">النسخ الاحتياطي</h3>
+    <button class="export-btn-settings" id="backup-export-btn">💾 تصدير نسخة احتياطية (JSON)</button>
+    <button class="export-btn-settings" id="backup-import-btn">📥 استيراد نسخة احتياطية</button>
+    <input type="file" id="backup-import-file" accept="application/json" style="display:none">
+
+    <h3 style="margin-top:24px">بيانات الاختبار</h3>
     <button class="reset-btn-settings" id="reset-test-data">🗑️ مسح كل بيانات الاختبار</button>
   </div>
 
@@ -560,6 +587,7 @@ function catMeta(name) { return CATEGORY_META[name] || {icon:'🔹',color:'#7890
 const TYPE_LABELS = { loan:'قرض شخصي', car_finance:'تمويل سيارة', credit_card:'بطاقة ائتمانية', tabby:'تابي', tamara:'تمارا', installment:'شراء بالتقسيط', debt:'دين شخصي', other:'أخرى' };
 const TYPE_COLORS = { loan:'#3949ab', car_finance:'#1e88e5', credit_card:'#8e24aa', tabby:'#00acc1', tamara:'#fb8c00', installment:'#43a047', debt:'#e53935', other:'#607d8b' };
 const FREQ_MONTHS = { monthly:1, quarterly:3, semiannual:6, yearly:12 };
+const OB_FREQ_LABELS = { monthly:'شهري', quarterly:'كل 3 أشهر', semiannual:'نصف سنوي', yearly:'سنوي' };
 
 function addMonths(dateStr, n) {
   const d = new Date(dateStr);
@@ -719,6 +747,7 @@ async function init() {
   await populateCategoryDropdowns();
   populateObligationTypeGrid();
   setupFrequencyPicker();
+  setupObligationFrequencyPicker();
   renderSuggestions();
   await generateDueRecurringExpenses();
   await renderIncomeList();
@@ -750,6 +779,17 @@ function populateObligationTypeGrid() {
 function setupFrequencyPicker() {
   const grid = document.getElementById('income-frequency-grid');
   const hiddenInput = document.getElementById('income-frequency');
+  grid.querySelectorAll('.pill-btn').forEach(btn => {
+    btn.onclick = () => {
+      grid.querySelectorAll('.pill-btn').forEach(b => b.classList.remove('selected'));
+      btn.classList.add('selected');
+      hiddenInput.value = btn.dataset.val;
+    };
+  });
+}
+function setupObligationFrequencyPicker() {
+  const grid = document.getElementById('ob-frequency-grid');
+  const hiddenInput = document.getElementById('ob-frequency');
   grid.querySelectorAll('.pill-btn').forEach(btn => {
     btn.onclick = () => {
       grid.querySelectorAll('.pill-btn').forEach(b => b.classList.remove('selected'));
@@ -977,12 +1017,13 @@ document.getElementById('recurring-form').addEventListener('submit', async e => 
 });
 
 /* ===== الالتزامات ===== */
-async function generateInstallments(obligationId, anchorDate, count, amount, alreadyPaid) {
+async function generateInstallments(obligationId, anchorDate, count, amount, alreadyPaid, frequency) {
   alreadyPaid = Math.min(alreadyPaid || 0, count);
+  const stepMonths = FREQ_MONTHS[frequency] || 1;
   const rows = [];
   for (let i=0;i<count;i++) {
     const offset = i - alreadyPaid; // 0 = تاريخ الدفعة القادمة (المُدخل)، سالب = أقساط مدفوعة سابقة، موجب = أقساط مستقبلية
-    const dueDate = offset===0 ? anchorDate : addMonths(anchorDate, offset);
+    const dueDate = offset===0 ? anchorDate : addMonths(anchorDate, offset*stepMonths);
     rows.push({ obligation_id:obligationId, due_date:dueDate, amount, status: i<alreadyPaid?'paid':'due', sequence_number:i+1 });
   }
   const ids = await db.installments.bulkAdd(rows, { allKeys:true });
@@ -994,20 +1035,24 @@ document.getElementById('obligation-form').addEventListener('submit', async e =>
   e.preventDefault();
   const editId = document.getElementById('ob-edit-id').value;
   const name=document.getElementById('ob-name').value, provider=document.getElementById('ob-provider').value, type=document.getElementById('ob-type').value,
+    frequency=document.getElementById('ob-frequency').value,
     total=parseFloat(document.getElementById('ob-total').value), installmentAmount=parseFloat(document.getElementById('ob-installment').value),
     count=parseInt(document.getElementById('ob-count').value), firstDate=document.getElementById('ob-first-date').value, notes=document.getElementById('ob-notes').value,
     paidCount=parseInt(document.getElementById('ob-paid-count').value)||0;
 
   if (editId) {
     const obligationId = parseInt(editId);
+    // نحذف الأقساط وسجلات الدفعات "العادية" المرتبطة بها فقط، ونحافظ على سجل الدفعات
+    // الإضافية والسداد المبكر (extra/payoff) حتى لا يضيع أثرها عند مجرد تعديل بيانات الالتزام
+    await db.payments.where('obligation_id').equals(obligationId).and(p => p.payment_type === 'regular').delete();
     await db.installments.where('obligation_id').equals(obligationId).delete();
-    await db.payments.where('obligation_id').equals(obligationId).delete();
-    await db.obligations.update(obligationId, { name, provider, type, total_amount:total, installment_amount:installmentAmount, installments_count:count, first_payment_date:firstDate, notes, status:'active', closed_date:null });
-    await generateInstallments(obligationId, firstDate, count, installmentAmount, paidCount);
+    await db.obligations.update(obligationId, { name, provider, type, frequency, total_amount:total, installment_amount:installmentAmount, installments_count:count, first_payment_date:firstDate, notes, status:'active', closed_date:null });
+    await generateInstallments(obligationId, firstDate, count, installmentAmount, paidCount, frequency);
+    await reconcileObligationAfterEdit(await db.obligations.get(obligationId));
     showToast('تم حفظ التعديلات');
   } else {
-    const obligationId = await db.obligations.add({ name, provider, type, total_amount:total, installment_amount:installmentAmount, installments_count:count, first_payment_date:firstDate, notes, status:'active', closed_date:null, active:true });
-    await generateInstallments(obligationId, firstDate, count, installmentAmount, paidCount);
+    const obligationId = await db.obligations.add({ name, provider, type, frequency, total_amount:total, installment_amount:installmentAmount, installments_count:count, first_payment_date:firstDate, notes, status:'active', closed_date:null, active:true });
+    await generateInstallments(obligationId, firstDate, count, installmentAmount, paidCount, frequency);
     showToast('تمت إضافة الالتزام');
   }
 
@@ -1029,6 +1074,8 @@ function openEditObligation(ob) {
   document.getElementById('ob-notes').value = ob.notes || '';
   document.getElementById('ob-type').value = ob.type;
   document.querySelectorAll('#ob-type-grid .pill-btn').forEach(b => b.classList.toggle('selected', b.dataset.val === ob.type));
+  document.getElementById('ob-frequency').value = ob.frequency || 'monthly';
+  document.querySelectorAll('#ob-frequency-grid .pill-btn').forEach(b => b.classList.toggle('selected', b.dataset.val === (ob.frequency || 'monthly')));
   db.installments.where('obligation_id').equals(ob.id).toArray().then(insts => {
     const paidCount = insts.filter(i => i.status==='paid').length;
     document.getElementById('ob-paid-count').value = paidCount;
@@ -1053,16 +1100,29 @@ async function getObligationFinancials(ob) {
   const paidCount = installments.filter(i=>i.status==='paid').length;
   return { installments, payments, totalPaid, remaining, paidCount };
 }
-async function applyExtraPayment(ob, amount, shortenTerm) {
+async function applyExtraPayment(ob, amount) {
   const today = todayStr();
   await db.payments.add({ installment_id:null, obligation_id:ob.id, amount_paid:amount, paid_date:today, payment_type:'extra' });
   const { installments, remaining:newRemaining } = await getObligationFinancials(ob);
   const neededRemainingCount = Math.ceil(newRemaining / ob.installment_amount);
-  const unpaidSorted = installments.filter(i=>i.status!=='paid' && i.status!=='cancelled');
+  const unpaidSorted = installments.filter(i=>i.status!=='paid' && i.status!=='cancelled').sort((a,b)=>a.sequence_number-b.sequence_number);
   const toCancel = unpaidSorted.slice(neededRemainingCount);
   for (const inst of toCancel) await db.installments.update(inst.id,{status:'cancelled'});
-  if (newRemaining<=0 || shortenTerm) await db.obligations.update(ob.id,{status:'closed', closed_date:today});
+  // الإغلاق يتم فقط إذا فعلاً اكتمل السداد بالكامل — لا يُغلق الالتزام لمجرد وجود دفعة إضافية مع بقاء مبلغ مستحق
+  if (newRemaining<=0) await db.obligations.update(ob.id,{status:'closed', closed_date:today});
   await renderObligationList(); await renderDashboard(); showToast('تم تسجيل الدفعة الإضافية');
+}
+async function reconcileObligationAfterEdit(ob) {
+  const { installments, remaining } = await getObligationFinancials(ob);
+  if (remaining <= 0) {
+    for (const inst of installments) if (inst.status!=='paid') await db.installments.update(inst.id,{status:'cancelled'});
+    await db.obligations.update(ob.id, { status:'closed', closed_date: todayStr() });
+    return;
+  }
+  const neededRemainingCount = Math.ceil(remaining / ob.installment_amount);
+  const unpaidSorted = installments.filter(i=>i.status!=='paid' && i.status!=='cancelled').sort((a,b)=>a.sequence_number-b.sequence_number);
+  const toCancel = unpaidSorted.slice(neededRemainingCount);
+  for (const inst of toCancel) await db.installments.update(inst.id,{status:'cancelled'});
 }
 async function applyFullPayoff(ob, payoffAmount, fee) {
   const today = todayStr();
@@ -1122,9 +1182,10 @@ async function renderObligationList() {
 
     const card = document.createElement('div'); card.className='card'; card.id='ob-card-'+ob.id; card.style.borderInlineStart = `4px solid ${tColor}`;
     const typeLabel = TYPE_LABELS[ob.type] || ob.type;
+    const freqLabel = OB_FREQ_LABELS[ob.frequency] || OB_FREQ_LABELS.monthly;
     card.innerHTML = `
       <div class="card-row" style="align-items:center">
-        <h3 style="color:var(--text);font-size:1rem;margin:0;flex:1">${ob.name} <span class="card-sub">(${typeLabel}${ob.provider?' — '+ob.provider:''})</span></h3>
+        <h3 style="color:var(--text);font-size:1rem;margin:0;flex:1">${ob.name} <span class="card-sub">(${typeLabel}${ob.provider?' — '+ob.provider:''} · ${freqLabel})</span></h3>
         <div style="display:flex;gap:6px;flex-shrink:0;align-items:center">
           <button class="pay-btn no-print ob-edit-btn" style="background:#546e7a">تعديل</button>
           <button class="delete-btn no-print ob-delete-btn">حذف</button>
@@ -1147,7 +1208,7 @@ async function renderObligationList() {
         <div class="early-box no-print">
           <h4>دفعة إضافية / سداد مبكر</h4>
           <div class="early-row"><input type="number" class="extra-amount" placeholder="مبلغ الدفعة الإضافية" min="0" step="0.01"><button class="btn-extra">تسجيل دفعة إضافية</button></div>
-          <label class="checkbox-line"><input type="checkbox" class="shorten-term"> تقصير المدة (إغلاق فوري عند اكتمال السداد)</label>
+          <p class="card-sub" style="margin:2px 0 0">الدفعة الإضافية تقلل عدد الأقساط المتبقية تلقائياً، ويُغلق الالتزام بمجرد اكتمال السداد بالكامل.</p>
           <div class="early-row" style="margin-top:10px">
             <input type="number" class="payoff-amount" placeholder="مبلغ السداد (المتبقي: ${fmtMoney(remaining)})" min="0" step="0.01">
             <input type="number" class="payoff-fee" placeholder="رسوم إن وجدت" min="0" step="0.01">
@@ -1159,8 +1220,10 @@ async function renderObligationList() {
 
     card.querySelector('.ob-edit-btn').onclick = () => openEditObligation(ob);
     card.querySelector('.ob-delete-btn').onclick = async () => {
-      if (!confirm('سيتم حذف الالتزام "'+ob.name+'" نهائياً (مع سجل أقساطه). متأكد؟')) return;
+      if (!confirm('سيتم حذف الالتزام "'+ob.name+'" نهائياً (مع سجل أقساطه ودفعاته). متأكد؟')) return;
       await db.obligations.update(ob.id, { active:false });
+      await db.installments.where('obligation_id').equals(ob.id).delete();
+      await db.payments.where('obligation_id').equals(ob.id).delete();
       showToast('تم حذف الالتزام');
       await renderObligationList(); await renderDashboard();
     };
@@ -1190,9 +1253,9 @@ async function renderObligationList() {
     });
     box.appendChild(scrollWrap);
     card.querySelector('.btn-extra').onclick = async () => {
-      const amountInput = card.querySelector('.extra-amount'); const shorten = card.querySelector('.shorten-term').checked;
+      const amountInput = card.querySelector('.extra-amount');
       const amount = parseFloat(amountInput.value); if (!amount||amount<=0) return;
-      await applyExtraPayment(ob, amount, shorten);
+      await applyExtraPayment(ob, amount);
     };
     card.querySelector('.btn-payoff').onclick = async () => {
       const payoffInput = card.querySelector('.payoff-amount'); const feeInput = card.querySelector('.payoff-fee'); const resultBox = card.querySelector('.payoff-result-box');
@@ -1299,9 +1362,10 @@ async function renderGoalList() {
       showToast('تم تحديث المدّخرات'); await renderGoalList(); await renderDashboard(); await renderSavingsHistory();
     };
     card.querySelector('.goal-delete-btn').onclick = async () => {
-      if (!confirm('سيتم حذف الهدف "'+goal.name+'" نهائياً. متأكد؟')) return;
+      if (!confirm('سيتم حذف الهدف "'+goal.name+'" نهائياً (مع سجل مساهماته). متأكد؟')) return;
       await db.savingsGoals.update(goal.id, { active:false });
-      showToast('تم حذف الهدف'); await renderGoalList(); await renderDashboard();
+      await db.savingsLog.where('goal_id').equals(goal.id).delete();
+      showToast('تم حذف الهدف'); await renderGoalList(); await renderDashboard(); await renderSavingsHistory();
     };
     const contribToggle = card.querySelector('.goal-contrib-toggle');
     const contribBox = card.querySelector('.goal-contrib-box');
@@ -1501,14 +1565,14 @@ async function renderReports() {
     `<div class="compare-row"><span style="min-width:70px">الادخار</span><div class="compare-bar-track"><div class="compare-bar-fill" style="width:0%"></div></div><span class="compare-pct pct-na">غير متاح بعد</span></div>`;
 }
 
-/* ===== الرؤية (توقع 24 شهر) ===== */
+/* ===== الرؤية (توقع 60 شهر) ===== */
+const VISION_MONTHS = 60;
 async function renderVision() {
   const container = document.getElementById('vision-list');
   container.innerHTML = '<p class="empty-hint">جاري الحساب...</p>';
 
   const totalIncome = (await db.income.toArray()).filter(i=>i.active!==false).reduce((s,i)=>s+i.amount,0);
-  const totalPlannedSaving = (await db.savingsGoals.toArray()).filter(g=>g.active!==false).reduce((s,g)=>s+g.monthly_contribution,0);
-  const totalSavingNow = (await db.savingsGoals.toArray()).filter(g=>g.active!==false).reduce((s,g)=>s+g.current_amount,0);
+  const goals = (await db.savingsGoals.toArray()).filter(g=>g.active!==false);
   const allInstallments = (await db.installments.toArray()).filter(i=>i.status!=='cancelled' && i.status!=='paid');
   const obByMonth = {};
   allInstallments.forEach(i => { const m=i.due_date.slice(0,7); obByMonth[m]=(obByMonth[m]||0)+i.amount; });
@@ -1517,7 +1581,7 @@ async function renderVision() {
   const today = new Date();
 
   container.innerHTML = '';
-  for (let m=0; m<24; m++) {
+  for (let m=0; m<VISION_MONTHS; m++) {
     const d = new Date(today.getFullYear(), today.getMonth()+m, 1);
     const monthKey = d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');
 
@@ -1529,8 +1593,22 @@ async function renderVision() {
       if (monthsDiff >= 0 && monthsDiff % stepMonths === 0) recTotal += r.amount;
     });
 
+    // كل هدف ادخار يتوقف عن "استهلاك" جزء من المتاح الشهري بمجرد اكتماله فعلياً،
+    // ورصيده المتوقع لا يتجاوز المبلغ المستهدف
+    let plannedSavingThisMonth = 0;
+    let projectedSavingBalance = 0;
+    goals.forEach(g => {
+      const remaining = Math.max(0, g.target_amount - g.current_amount);
+      const monthsToComplete = g.monthly_contribution > 0 ? Math.ceil(remaining / g.monthly_contribution) : Infinity;
+      if (m < monthsToComplete) plannedSavingThisMonth += g.monthly_contribution;
+      const projected = g.monthly_contribution > 0
+        ? Math.min(g.target_amount, g.current_amount + g.monthly_contribution * (m + 1))
+        : g.current_amount;
+      projectedSavingBalance += projected;
+    });
+
     const obTotal = obByMonth[monthKey] || 0;
-    const net = totalIncome - obTotal - recTotal - totalPlannedSaving;
+    const net = totalIncome - obTotal - recTotal - plannedSavingThisMonth;
     const netPct = totalIncome > 0 ? Math.max(0, Math.min(100, (net/totalIncome)*100)) : 0;
     const netColor = net >= 0 ? 'var(--income)' : 'var(--expense)';
 
@@ -1541,7 +1619,7 @@ async function renderVision() {
         <span class="label">الدخل:</span><span class="value" style="color:var(--income)">${fmtMoney(totalIncome)} ريال</span>
         <span class="label">الالتزامات:</span><span class="value" style="color:var(--obligation)">${fmtMoney(obTotal)} ريال</span>
         <span class="label">مصروفات متكررة:</span><span class="value" style="color:var(--expense)">${fmtMoney(recTotal)} ريال</span>
-        <span class="label">رصيد الادخار المتوقع:</span><span class="value">${fmtMoney(totalSavingNow + totalPlannedSaving*(m+1))} ريال</span>
+        <span class="label">رصيد الادخار المتوقع:</span><span class="value">${fmtMoney(projectedSavingBalance)} ريال</span>
       </div>
       <div class="progress-track"><div class="progress-fill" style="width:${netPct}%;background:${netColor}"></div></div>
       <div class="total-line" style="color:${netColor}">المتاح المتوقع: ${fmtMoney(net)} ريال</div>
@@ -1549,6 +1627,42 @@ async function renderVision() {
     container.appendChild(card);
   }
 }
+
+/* ===== النسخ الاحتياطي ===== */
+const BACKUP_TABLES = ['income','categories','expenses','recurringExpenses','obligations','installments','payments','savingsGoals','incomeLog','savingsLog'];
+document.getElementById('backup-export-btn').addEventListener('click', async () => {
+  const data = { app:'التزاماتي', version:1, exportedAt:new Date().toISOString() };
+  for (const t of BACKUP_TABLES) data[t] = await db[t].toArray();
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type:'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = 'iltizamati-backup-' + todayStr() + '.json';
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  showToast('تم تصدير النسخة الاحتياطية');
+});
+document.getElementById('backup-import-btn').addEventListener('click', () => {
+  document.getElementById('backup-import-file').click();
+});
+document.getElementById('backup-import-file').addEventListener('change', async (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+  if (!confirm('سيتم استبدال كل البيانات الحالية بالنسخة المستوردة نهائياً. متأكد؟')) { e.target.value=''; return; }
+  try {
+    const text = await file.text();
+    const data = JSON.parse(text);
+    if (!data || typeof data !== 'object') throw new Error('bad format');
+    for (const t of BACKUP_TABLES) {
+      await db[t].clear();
+      if (Array.isArray(data[t]) && data[t].length) await db[t].bulkAdd(data[t]);
+    }
+    showToast('تم استيراد النسخة الاحتياطية بنجاح');
+    setTimeout(() => location.reload(), 800);
+  } catch (err) {
+    alert('فشل الاستيراد: الملف غير صالح أو تالف');
+  }
+  e.target.value = '';
+});
 
 /* ===== PDF Export ===== */
 document.getElementById('export-pdf').addEventListener('click', () => {
