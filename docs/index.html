@@ -267,7 +267,7 @@ label.checkbox-line { display:flex; align-items:center; gap:6px; font-size:0.8re
 
 /* ===== Settings ===== */
 .settings-row { display:flex; justify-content:space-between; align-items:center; background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-sm); padding:14px; margin-bottom:10px; }
-.toggle-switch { position:relative; width:48px; height:26px; }
+.toggle-switch { position:relative; display:inline-block; width:48px; height:26px; flex-shrink:0; }
 .toggle-switch input { opacity:0; width:0; height:0; }
 .toggle-slider { position:absolute; inset:0; background:var(--border); border-radius:20px; cursor:pointer; transition:0.3s; }
 .toggle-slider::before { content:""; position:absolute; width:20px; height:20px; left:3px; top:3px; background:white; border-radius:50%; transition:0.3s; }
@@ -280,14 +280,21 @@ input:checked + .toggle-slider::before { transform:translateX(-22px); }
 #toast { position:fixed; bottom:104px; left:50%; transform:translateX(-50%) translateY(20px); background:var(--surface3); color:var(--text); border:1px solid var(--border); padding:12px 20px; border-radius:30px; font-size:0.83rem; opacity:0; pointer-events:none; transition:all 0.3s ease; z-index:95; }
 #toast.show { opacity:1; transform:translateX(-50%) translateY(0); }
 
+.print-only { display:none; }
 @media print {
-  .no-print, .bottom-nav, .drawer, .drawer-overlay, .sheet, .sheet-overlay, .modal-overlay, .modal-panel, .top-bar { display:none !important; }
   body { padding:0; background:white; color:#000; }
-  #print-date { display:block; margin-bottom:16px; color:#555; font-size:0.9rem; }
-  .view { display:block !important; }
-  .card, .widget { break-inside:avoid; border:1px solid #999 !important; box-shadow:none !important; background:white !important; color:#000 !important; }
-  .installments-box, .ob-body { display:block !important; max-height:none !important; opacity:1 !important; overflow:visible !important; }
-  .toggle-btn { display:none !important; }
+  .app-container, #toast, .no-print, .bottom-nav, .drawer, .drawer-overlay, .sheet, .sheet-overlay, .modal-overlay, .modal-panel { display:none !important; }
+  .print-only { display:block; font-family:'Cairo', sans-serif; color:#111; max-width:100%; padding:10px; }
+  .print-only h1 { font-size:1.3rem; margin:0 0 2px; }
+  .print-only .pr-date { font-size:0.8rem; color:#555; margin-bottom:14px; }
+  .print-only h2 { font-size:1rem; margin:16px 0 6px; border-bottom:2px solid #333; padding-bottom:3px; }
+  .print-only table { width:100%; border-collapse:collapse; font-size:0.82rem; margin-bottom:6px; }
+  .print-only th, .print-only td { border:1px solid #ccc; padding:5px 7px; text-align:right; }
+  .print-only th { background:#eee; }
+  .print-only .pr-summary { display:grid; grid-template-columns:repeat(4,1fr); gap:8px; margin-bottom:6px; }
+  .print-only .pr-summary div { border:1px solid #ccc; border-radius:6px; padding:8px; text-align:center; }
+  .print-only .pr-summary .lbl { font-size:0.72rem; color:#555; }
+  .print-only .pr-summary .val { font-size:1rem; font-weight:700; }
 }
 </style>
 </head>
@@ -475,6 +482,7 @@ input:checked + .toggle-slider::before { transform:translateX(-22px); }
 
     <h2>المصروفات المتكررة</h2>
     <form id="recurring-form" class="no-print">
+      <input type="hidden" id="rec-edit-id" value="">
       <input type="text" id="rec-name" placeholder="اسم المصروف المتكرر (مثال: الإيجار)" required>
       <input type="number" id="rec-amount" placeholder="المبلغ" required min="0" step="0.01">
       <select id="rec-category" required></select>
@@ -485,7 +493,7 @@ input:checked + .toggle-slider::before { transform:translateX(-22px); }
         <option value="semiannual">نصف سنوي</option>
         <option value="yearly">سنوي</option>
       </select>
-      <button type="submit" class="btn btn-recurring">إضافة مصروف متكرر</button>
+      <button type="submit" class="btn btn-recurring" id="rec-submit-btn">إضافة مصروف متكرر</button>
     </form>
     <h3>المصروفات المتكررة النشطة</h3>
     <div id="recurring-list"></div>
@@ -567,6 +575,8 @@ input:checked + .toggle-slider::before { transform:translateX(-22px); }
   </div>
 
 </div>
+
+<div id="print-report" class="print-only"></div>
 
 <div id="toast"></div>
 
@@ -1036,21 +1046,54 @@ async function renderRecurringList() {
     const card = document.createElement('div'); card.className='card card-row';
     card.innerHTML = `<span class="cat-icon" style="background:${meta.color}22;color:${meta.color}">${meta.icon}</span>
       <div style="flex:1"><div class="card-title">${item.name} — ${fmtMoney(item.amount)} ريال</div><div class="card-sub">${catName} · ${freqLabels[item.frequency]} · القادم: ${item.due_date}</div></div>`;
-    const btn = document.createElement('button'); btn.textContent='إيقاف'; btn.className='delete-btn';
-    btn.onclick = async () => { await db.recurringExpenses.update(item.id,{active:false}); renderRecurringList(); };
-    card.appendChild(btn); return card;
+    const btnWrap = document.createElement('div'); btnWrap.style.cssText='display:flex;gap:6px;flex-shrink:0';
+    const editBtn = document.createElement('button'); editBtn.textContent='تعديل'; editBtn.className='pay-btn no-print';
+    editBtn.onclick = () => openEditRecurring(item);
+    const delBtn = document.createElement('button'); delBtn.textContent='حذف'; delBtn.className='delete-btn';
+    delBtn.onclick = async () => {
+      if (!confirm('حذف "'+item.name+'" نهائياً؟ (المصروفات السابقة الفعلية تبقى بسجلك، وما لم يحن موعده بعد يُحذف)')) return;
+      const today = todayStr();
+      await db.recurringExpenses.update(item.id, { active:false });
+      await db.expenses.where('recurring_expense_id').equals(item.id).and(e => e.date >= today).delete();
+      await renderRecurringList(); await renderExpenseList(); await renderDashboard();
+      showToast('تم حذف المصروف المتكرر');
+    };
+    btnWrap.appendChild(editBtn); btnWrap.appendChild(delBtn);
+    card.appendChild(btnWrap); return card;
   }, 'لا يوجد مصروفات متكررة بعد');
+}
+function openEditRecurring(item) {
+  document.getElementById('rec-edit-id').value = item.id;
+  document.getElementById('rec-name').value = item.name;
+  document.getElementById('rec-amount').value = item.amount;
+  document.getElementById('rec-category').value = item.category_id;
+  document.getElementById('rec-due-date').value = item.due_date;
+  document.getElementById('rec-frequency').value = item.frequency;
+  document.getElementById('rec-submit-btn').textContent = 'حفظ التعديلات';
+  document.getElementById('rec-name').scrollIntoView({ behavior:'smooth', block:'center' });
 }
 document.getElementById('recurring-form').addEventListener('submit', async e => {
   e.preventDefault();
+  const editId = document.getElementById('rec-edit-id').value;
   const name=document.getElementById('rec-name').value, amount=parseFloat(document.getElementById('rec-amount').value),
     categoryId=parseInt(document.getElementById('rec-category').value), dueDate=document.getElementById('rec-due-date').value,
     frequency=document.getElementById('rec-frequency').value;
-  await db.recurringExpenses.add({ name, amount, category_id:categoryId, due_date:dueDate, frequency, active:true });
+  if (editId) {
+    const id = parseInt(editId);
+    await db.recurringExpenses.update(id, { name, amount, category_id:categoryId, due_date:dueDate, frequency });
+    // نحدّث أي مصروف مولّد من نفس القاعدة ولسا ما جا موعده الفعلي، عشان يطابق التعديل الجديد
+    const today = todayStr();
+    await db.expenses.where('recurring_expense_id').equals(id).and(e => e.date >= today).modify({ name, amount, category_id:categoryId });
+    document.getElementById('rec-edit-id').value = '';
+    document.getElementById('rec-submit-btn').textContent = 'إضافة مصروف متكرر';
+    showToast('تم حفظ التعديلات');
+  } else {
+    await db.recurringExpenses.add({ name, amount, category_id:categoryId, due_date:dueDate, frequency, active:true });
+    showToast('تمت إضافة المصروف المتكرر');
+  }
   e.target.reset(); document.getElementById('rec-due-date').valueAsDate = new Date();
   await populateCategoryDropdowns(); await generateDueRecurringExpenses();
   await renderRecurringList(); await renderExpenseList(); await renderDashboard();
-  showToast('تمت إضافة المصروف المتكرر');
 });
 
 /* ===== الالتزامات ===== */
@@ -1229,7 +1272,10 @@ async function renderObligationList() {
           <button class="toggle-btn ob-expand-toggle no-print" style="width:auto;padding:9px 10px;margin-top:0"><span class="arrow">▾</span></button>
         </div>
       </div>
-      <div class="card-sub" style="white-space:nowrap;overflow-x:auto;margin-top:4px">المتبقي: ${fmtMoney(remaining)} ريال ${nextDue?'· القادم: '+nextDue.due_date:''}</div>
+      <div class="card-row" style="align-items:center;margin-top:4px">
+        <div class="card-sub" style="white-space:nowrap;overflow-x:auto">المتبقي: ${fmtMoney(remaining)} ريال ${nextDue?'· القادم: '+nextDue.due_date:''}</div>
+        ${nextDue ? '<button class="pay-btn no-print ob-quick-pay" style="flex-shrink:0">دفع '+fmtMoney(nextDue.amount)+'</button>' : ''}
+      </div>
       <div class="ob-body">
         <div class="progress-track"><div class="progress-fill" style="width:${pct}%;background:${tColor}"></div></div>
         <div class="stats-grid">
@@ -1256,6 +1302,10 @@ async function renderObligationList() {
       </div>`;
 
     card.querySelector('.ob-edit-btn').onclick = () => openEditObligation(ob);
+    if (nextDue) {
+      const quickPayBtn = card.querySelector('.ob-quick-pay');
+      quickPayBtn.onclick = (e) => { e.stopPropagation(); markInstallmentPaid(nextDue.id, ob.id, nextDue.amount); };
+    }
     card.querySelector('.ob-delete-btn').onclick = async () => {
       if (!confirm('سيتم حذف الالتزام "'+ob.name+'" نهائياً (مع سجل أقساطه ودفعاته). متأكد؟')) return;
       await db.obligations.update(ob.id, { active:false });
@@ -1464,14 +1514,16 @@ document.getElementById('goal-form').addEventListener('submit', async e => {
 
 /* ===== Dashboard / Home widgets ===== */
 async function computeCoreNumbers(monthStr) {
+  const today = todayStr();
   const totalIncome = (await db.income.toArray()).filter(i=>i.active!==false).reduce((s,i)=>s+i.amount,0);
-  const totalExpense = (await db.expenses.toArray()).filter(e=>e.active!==false && e.date.startsWith(monthStr)).reduce((s,e)=>s+e.amount,0);
+  const totalExpense = (await db.expenses.toArray()).filter(e=>e.active!==false && e.date.startsWith(monthStr) && e.date<=today).reduce((s,e)=>s+e.amount,0);
   const obligations = (await db.obligations.toArray()).filter(o=>o.active!==false && o.status!=='closed');
   let totalObligationMonthly = 0;
   for (const ob of obligations) {
     const { installments } = await getObligationFinancials(ob);
-    const hasDueThisMonth = installments.some(i => (i.status==='due'||i.status==='late'||i.status==='paid') && i.due_date.startsWith(monthStr));
-    if (hasDueThisMonth) totalObligationMonthly += ob.installment_amount;
+    // لا يُخصم القسط إلا إذا كان مدفوعاً فعلاً، أو حل موعد استحقاقه (وصل تاريخه أو تجاوزه) — مو بمجرد وقوعه بنفس الشهر
+    const isDueNow = installments.some(i => i.due_date.startsWith(monthStr) && (i.status==='paid' || ((i.status==='due'||i.status==='late') && i.due_date<=today)));
+    if (isDueNow) totalObligationMonthly += ob.installment_amount;
   }
   const totalSavingThisMonth = (await db.savingsLog.toArray()).filter(l=>l.date.startsWith(monthStr)).reduce((s,l)=>s+l.amount,0);
   const available = totalIncome - totalObligationMonthly - totalExpense - totalSavingThisMonth;
@@ -1703,10 +1755,51 @@ document.getElementById('backup-import-file').addEventListener('change', async (
 });
 
 /* ===== PDF Export ===== */
-document.getElementById('export-pdf').addEventListener('click', () => {
-  document.querySelectorAll('.installments-box, .ob-body').forEach(b => b.classList.add('open'));
+async function buildPrintReport() {
+  const today = todayStr(); const thisMonth = today.slice(0,7);
+  const { totalIncome, totalExpense, totalObligationMonthly, totalSavingThisMonth, available } = await computeCoreNumbers(thisMonth);
   const now = new Date();
-  document.getElementById('print-date').textContent = 'تاريخ التصدير: ' + now.toLocaleDateString('en-GB') + ' — ' + now.toLocaleTimeString('en-GB');
+
+  const obligations = (await db.obligations.toArray()).filter(o=>o.active!==false && o.status!=='closed');
+  let obRows = '';
+  for (const ob of obligations) {
+    const { installments, remaining } = await getObligationFinancials(ob);
+    const nextDue = installments.find(i=>i.status==='due'||i.status==='late');
+    obRows += `<tr><td>${ob.name}</td><td>${fmtMoney(remaining)} ريال</td><td>${fmtMoney(ob.installment_amount)} ريال</td><td>${nextDue?nextDue.due_date:'—'}</td></tr>`;
+  }
+  if (!obRows) obRows = '<tr><td colspan="4">لا يوجد التزامات نشطة</td></tr>';
+
+  const cats = await db.categories.toArray(); const catMap = {}; cats.forEach(c=>catMap[c.id]=c.name);
+  const monthExpenses = (await db.expenses.toArray()).filter(e=>e.active!==false && e.date.startsWith(thisMonth) && e.date<=today).sort((a,b)=>b.date.localeCompare(a.date));
+  let expRows = monthExpenses.map(e => `<tr><td>${e.name}</td><td>${catMap[e.category_id]||'غير مصنّف'}</td><td>${e.date}</td><td>${fmtMoney(e.amount)} ريال</td></tr>`).join('');
+  if (!expRows) expRows = '<tr><td colspan="4">لا يوجد مصروفات مسجّلة هذا الشهر بعد</td></tr>';
+
+  const goals = (await db.savingsGoals.toArray()).filter(g=>g.active!==false);
+  let goalRows = goals.map(g => {
+    const pct = g.target_amount>0 ? Math.round((g.current_amount/g.target_amount)*100) : 0;
+    return `<tr><td>${g.name}</td><td>${fmtMoney(g.current_amount)} ريال</td><td>${fmtMoney(g.target_amount)} ريال</td><td>${pct}%</td></tr>`;
+  }).join('');
+  if (!goalRows) goalRows = '<tr><td colspan="4">لا يوجد أهداف ادخار نشطة</td></tr>';
+
+  document.getElementById('print-report').innerHTML = `
+    <h1>تقرير التزاماتي</h1>
+    <div class="pr-date">تاريخ التصدير: ${now.toLocaleDateString('en-GB')} — ${now.toLocaleTimeString('en-GB')}</div>
+    <div class="pr-summary">
+      <div><div class="lbl">الدخل</div><div class="val">${fmtMoney(totalIncome)}</div></div>
+      <div><div class="lbl">المصروفات (حتى الآن)</div><div class="val">${fmtMoney(totalExpense)}</div></div>
+      <div><div class="lbl">الالتزامات المستحقة</div><div class="val">${fmtMoney(totalObligationMonthly)}</div></div>
+      <div><div class="lbl">صافي المتاح</div><div class="val">${fmtMoney(available)}</div></div>
+    </div>
+    <h2>الالتزامات النشطة</h2>
+    <table><thead><tr><th>الاسم</th><th>المتبقي</th><th>القسط</th><th>القسط القادم</th></tr></thead><tbody>${obRows}</tbody></table>
+    <h2>مصروفات هذا الشهر (حتى الآن)</h2>
+    <table><thead><tr><th>الاسم</th><th>التصنيف</th><th>التاريخ</th><th>المبلغ</th></tr></thead><tbody>${expRows}</tbody></table>
+    <h2>أهداف الادخار</h2>
+    <table><thead><tr><th>الاسم</th><th>الحالي</th><th>الهدف</th><th>النسبة</th></tr></thead><tbody>${goalRows}</tbody></table>
+  `;
+}
+document.getElementById('export-pdf').addEventListener('click', async () => {
+  await buildPrintReport();
   window.print();
 });
 
