@@ -50,8 +50,11 @@ p { margin:4px 0; }
 @keyframes popIn { from{opacity:0; transform:scale(0.96);} to{opacity:1; transform:scale(1);} }
 
 .app-container { padding:16px; max-width:520px; margin:0 auto; }
-.top-bar { display:flex; align-items:center; justify-content:space-between; margin-bottom:14px; padding-top:2px; }
-.top-bar h1 { font-size:1.2rem; font-weight:800; letter-spacing:-0.01em; }
+.top-bar { display:flex; align-items:center; justify-content:space-between; margin-bottom:14px; padding-top:2px; gap:8px; }
+.top-bar h1 { font-size:1.15rem; font-weight:800; letter-spacing:-0.01em; display:flex; align-items:center; justify-content:center; gap:6px; }
+.top-bar-title { flex:1; text-align:center; min-width:0; }
+.top-subtitle { font-size:0.68rem; color:var(--muted); margin-top:2px; }
+.title-spark { font-size:0.8em; }
 .icon-btn { background:var(--surface); border:1px solid var(--border); width:38px; height:38px; border-radius:50%; font-size:1rem; display:flex; align-items:center; justify-content:center; color:var(--text); }
 .icon-btn:active { transform:scale(0.92); }
 
@@ -62,29 +65,42 @@ p { margin:4px 0; }
 .view.active { display:block; animation: fadeSlide 0.3s ease; }
 
 /* ===== Hero ===== */
-.hero-card { position:relative; overflow:hidden; background: linear-gradient(135deg, var(--gold-deep) 0%, var(--gold) 60%, var(--gold-soft) 100%); border-radius: var(--radius); padding:22px; color:#1a1206; margin-bottom:16px; box-shadow:var(--shadow-hero); animation: popIn 0.35s ease; }
-.hero-card::before { content:""; position:absolute; inset:0; background: radial-gradient(140% 100% at 100% 0%, rgba(255,255,255,0.28), transparent 55%); pointer-events:none; }
-.hero-label { font-size:0.85rem; opacity:0.85; position:relative; font-weight:600; }
-.hero-amount { font-size:2.3rem; font-weight:800; margin:2px 0 12px; position:relative; letter-spacing:-0.02em; }
-.hero-badge { display:inline-block; background:rgba(26,18,6,0.16); padding:5px 12px; border-radius:20px; font-size:0.78rem; position:relative; font-weight:700; }
+.hero-card { position:relative; overflow:hidden; background: linear-gradient(135deg, #0e4536 0%, #1c8a68 55%, #45c996 100%); border-radius: var(--radius); padding:22px; color:#eafff5; margin-bottom:16px; box-shadow: 0 18px 40px -14px rgba(28,138,104,0.4), 0 6px 16px rgba(0,0,0,0.3); animation: popIn 0.35s ease; display:flex; align-items:center; justify-content:space-between; gap:10px; }
+.hero-card::before { content:""; position:absolute; inset:0; background: radial-gradient(140% 100% at 100% 0%, rgba(255,255,255,0.16), transparent 55%); pointer-events:none; }
+.hero-content { position:relative; flex:1; min-width:0; }
+.hero-top-row { display:flex; align-items:center; gap:8px; }
+.hero-label { font-size:0.85rem; opacity:0.9; font-weight:600; }
+.hero-eye { background:rgba(255,255,255,0.18); border:none; width:26px; height:26px; border-radius:50%; color:inherit; font-size:0.8rem; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+.hero-amount { font-size:2.2rem; font-weight:800; margin:2px 0 12px; letter-spacing:-0.02em; }
+.hero-amount.blurred { filter:blur(9px); user-select:none; }
+.hero-badge { display:inline-block; background:rgba(255,255,255,0.18); padding:5px 12px; border-radius:20px; font-size:0.76rem; font-weight:700; }
+.hero-illustration { width:74px; height:74px; flex-shrink:0; opacity:0.95; position:relative; }
 
 /* ===== Stat row ===== */
 .stat-row { display:grid; grid-template-columns:repeat(4,1fr); gap:8px; margin-bottom:16px; }
-.stat-card { border-radius:var(--radius-sm); padding:12px 6px; text-align:center; animation:popIn 0.3s ease; cursor:pointer; border:1px solid transparent; }
+.stat-card { display:flex; flex-direction:column; align-items:center; border-radius:var(--radius-sm); padding:14px 4px 10px; text-align:center; animation:popIn 0.3s ease; cursor:pointer; border:1px solid transparent; }
 .stat-card:active { transform:scale(0.95); }
-.stat-card .ic { font-size:1.15rem; display:block; margin-bottom:4px; }
-.stat-card .num { font-size:0.92rem; font-weight:800; display:block; }
-.stat-card .lbl { font-size:0.65rem; opacity:0.85; margin-top:2px; }
-.stat-saving { background:var(--sage-bg); color:var(--gold-soft); } .stat-expense { background:var(--expense-bg); color:var(--expense); }
-.stat-obligation { background:var(--obligation-bg); color:var(--obligation); } .stat-income { background:var(--income-bg); color:var(--income); }
-[data-theme="light"] .stat-saving { color:var(--gold-deep); }
+.stat-icon-badge { width:34px; height:34px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:1rem; background:rgba(255,255,255,0.14); margin-bottom:6px; }
+.stat-lbl { font-size:0.72rem; font-weight:700; }
+.stat-val { font-size:1.05rem; font-weight:800; margin-top:3px; }
+.stat-unit { font-size:0.6rem; opacity:0.75; }
+.stat-chevron { margin-top:6px; opacity:0.55; font-size:0.85rem; }
+.stat-saving { background:#241a3a; color:#c9a8ec; } .stat-expense { background:#3a2414; color:#f0a868; }
+.stat-obligation { background:#152a42; color:#8ec2ec; } .stat-income { background:#123524; color:#8fe0b0; }
+[data-theme="light"] .stat-saving { background:#efeaf9; color:#7b5bb0; } [data-theme="light"] .stat-expense { background:#fbeae2; color:#c06a2a; }
+[data-theme="light"] .stat-obligation { background:#e6f0fa; color:#2d6ba8; } [data-theme="light"] .stat-income { background:#e6f4ec; color:#2e8a55; }
 
 /* ===== Widgets ===== */
 .widget { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:15px; margin-bottom:12px; animation:fadeSlide 0.3s ease; }
-.widget-title { font-size:0.82rem; color:var(--muted); margin-bottom:8px; font-weight:600; }
+.widget-head { display:flex; align-items:center; gap:10px; margin-bottom:10px; }
+.widget-icon { width:36px; height:36px; border-radius:50%; background:var(--sage-bg); color:var(--gold-soft); display:flex; align-items:center; justify-content:center; font-size:1rem; flex-shrink:0; }
+.widget-title { font-size:0.85rem; color:var(--text); font-weight:700; }
 .progress-track { background:var(--surface2); border-radius:8px; height:9px; overflow:hidden; margin:8px 0 4px; }
 .progress-fill { background:linear-gradient(90deg,var(--gold),var(--gold-soft)); height:100%; transition:width 0.6s ease; border-radius:8px; }
-.progress-caption { display:flex; justify-content:space-between; font-size:0.75rem; color:var(--muted); }
+.progress-caption { display:flex; justify-content:space-between; align-items:center; font-size:0.75rem; color:var(--muted); }
+.progress-pct-chip { background:var(--surface2); color:var(--text); padding:3px 10px; border-radius:14px; font-size:0.72rem; font-weight:700; }
+.empty-hint { text-align:center; color:var(--muted); font-size:0.85rem; padding:28px 10px; }
+.empty-hint::before { content:"📄"; display:block; font-size:1.8rem; margin-bottom:8px; opacity:0.5; }
 
 .next-due-card { background:linear-gradient(135deg,var(--clay),#e0a15c); border-radius:var(--radius); padding:15px; color:#2a1410; margin-bottom:12px; }
 .next-due-card .badge { background:rgba(42,20,16,0.16); display:inline-block; padding:3px 10px; border-radius:14px; font-size:0.72rem; margin-bottom:6px; font-weight:700; }
@@ -106,7 +122,6 @@ p { margin:4px 0; }
 .cat-icon { width:38px; height:38px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:1.05rem; flex-shrink:0; }
 .chip { display:inline-block; padding:3px 10px; border-radius:20px; font-size:0.7rem; font-weight:700; }
 .chip-due { background:var(--sage-bg); color:var(--gold-soft); } .chip-late { background:var(--expense-bg); color:var(--expense); } .chip-paid { background:var(--income-bg); color:var(--income); }
-.empty-hint { text-align:center; color:var(--muted); font-size:0.85rem; padding:24px 0; }
 
 /* ===== Forms ===== */
 form { display:flex; flex-direction:column; gap:10px; margin-bottom:16px; }
@@ -380,9 +395,12 @@ input:checked + .toggle-slider::before { transform:translateX(-22px); }
 
 <div class="app-container">
   <div class="top-bar">
-    <button class="icon-btn" id="open-drawer">☰</button>
-    <h1 id="page-title">التزاماتي</h1>
     <button class="icon-btn no-print" id="theme-quick-toggle">☀️</button>
+    <div class="top-bar-title">
+      <h1><span id="page-title">التزاماتي</span><span class="title-spark">📊</span></h1>
+      <p class="top-subtitle">خططك اليوم .. أمانك غداً</p>
+    </div>
+    <button class="icon-btn" id="open-drawer">☰</button>
   </div>
   <p id="status">جاري التحميل...</p>
   <p id="print-date"></p>
@@ -390,22 +408,33 @@ input:checked + .toggle-slider::before { transform:translateX(-22px); }
   <!-- ============ الرئيسية ============ -->
   <div class="view active" id="view-home">
     <div class="hero-card">
-      <div class="hero-label">صافي المتاح حالياً</div>
-      <div class="hero-amount" id="hero-available">0 ريال</div>
-      <span class="hero-badge" id="hero-badge">جاري الحساب...</span>
+      <div class="hero-content">
+        <div class="hero-top-row">
+          <span class="hero-label">صافي المتاح حالياً</span>
+          <button class="hero-eye no-print" id="hero-eye-toggle" aria-label="إخفاء/إظهار المبلغ">👁</button>
+        </div>
+        <div class="hero-amount" id="hero-available">0 ريال</div>
+        <span class="hero-badge" id="hero-badge">جاري الحساب...</span>
+      </div>
+      <svg class="hero-illustration" viewBox="0 0 100 100" aria-hidden="true">
+        <rect x="8" y="30" width="84" height="56" rx="12" fill="rgba(255,255,255,0.16)"/>
+        <path d="M8 42 Q8 30 20 30 H80 Q92 30 92 42 V48 H8 Z" fill="rgba(255,255,255,0.26)"/>
+        <circle cx="74" cy="60" r="8" fill="rgba(255,255,255,0.42)"/>
+        <rect x="18" y="18" width="52" height="16" rx="8" fill="rgba(255,255,255,0.14)"/>
+      </svg>
     </div>
 
     <div class="stat-row">
-      <div class="stat-card stat-saving" data-view="view-savings"><span class="ic">💎</span><span class="num" id="dash-saving">0</span><span class="lbl">الادخار</span></div>
-      <div class="stat-card stat-expense" data-view="view-expenses"><span class="ic">🧾</span><span class="num" id="dash-expense">0</span><span class="lbl">المصروفات</span></div>
-      <div class="stat-card stat-obligation" data-view="view-obligations"><span class="ic">📋</span><span class="num" id="dash-obligation">0</span><span class="lbl">الالتزامات</span></div>
-      <div class="stat-card stat-income" data-view="view-income"><span class="ic">💵</span><span class="num" id="dash-income">0</span><span class="lbl">الدخل</span></div>
+      <div class="stat-card stat-saving" data-view="view-savings"><span class="stat-icon-badge">💎</span><span class="stat-lbl">الادخار</span><span class="stat-val" id="dash-saving">0</span><span class="stat-unit">ريال</span><span class="stat-chevron">‹</span></div>
+      <div class="stat-card stat-expense" data-view="view-expenses"><span class="stat-icon-badge">🧾</span><span class="stat-lbl">المصروفات</span><span class="stat-val" id="dash-expense">0</span><span class="stat-unit">ريال</span><span class="stat-chevron">‹</span></div>
+      <div class="stat-card stat-obligation" data-view="view-obligations"><span class="stat-icon-badge">📋</span><span class="stat-lbl">الالتزامات</span><span class="stat-val" id="dash-obligation">0</span><span class="stat-unit">ريال</span><span class="stat-chevron">‹</span></div>
+      <div class="stat-card stat-income" data-view="view-income"><span class="stat-icon-badge">💵</span><span class="stat-lbl">الدخل</span><span class="stat-val" id="dash-income">0</span><span class="stat-unit">ريال</span><span class="stat-chevron">‹</span></div>
     </div>
 
     <div class="widget">
-      <div class="widget-title">المتبقي من الراتب هذا الشهر</div>
+      <div class="widget-head"><span class="widget-icon">🎯</span><span class="widget-title">المتبقي من الراتب هذا الشهر</span></div>
       <div class="progress-track"><div class="progress-fill" id="salary-progress-fill" style="width:0%"></div></div>
-      <div class="progress-caption"><span id="salary-progress-text">0 ريال</span><span id="salary-progress-total">من 0 ريال</span></div>
+      <div class="progress-caption"><span><span id="salary-progress-text">0 ريال</span> <span id="salary-progress-total">من 0 ريال</span></span><span class="progress-pct-chip" id="salary-progress-pct">📅 0%</span></div>
     </div>
 
     <div id="daily-available-widget"></div>
@@ -624,6 +653,8 @@ function showView(viewId) {
   document.querySelectorAll('.nav-item').forEach(btn => btn.classList.toggle('active', btn.dataset.view === viewId));
   const titles = { 'view-home':'التزاماتي','view-income':'الدخل','view-expenses':'المصروفات','view-obligations':'الالتزامات المالية','view-calculator':'حاسبة التمويل','view-savings':'الادخار','view-settings':'الإعدادات','view-calendar':'التقويم المالي','view-reports':'التقارير','view-vision':'الرؤية' };
   document.getElementById('page-title').textContent = titles[viewId] || 'التزاماتي';
+  const subtitleEl = document.querySelector('.top-subtitle');
+  if (subtitleEl) subtitleEl.style.display = (viewId === 'view-home') ? '' : 'none';
   window.scrollTo({ top:0, behavior:'smooth' });
   closeDrawer(); closeSheet();
   if (viewId === 'view-calendar') renderCalendar();
@@ -695,6 +726,12 @@ document.getElementById('theme-quick-toggle').addEventListener('click', () => {
   applyTheme(current === 'dark' ? 'light' : 'dark');
 });
 (function initTheme(){ applyTheme(localStorage.getItem('iltizamati-theme') || 'dark'); })();
+
+document.getElementById('hero-eye-toggle').addEventListener('click', function(){
+  const amt = document.getElementById('hero-available');
+  const hidden = amt.classList.toggle('blurred');
+  this.textContent = hidden ? '🙈' : '👁';
+});
 
 /* ===== Reset & seed ===== */
 document.getElementById('reset-test-data').addEventListener('click', async () => {
@@ -1463,6 +1500,7 @@ async function renderDashboard() {
   document.getElementById('salary-progress-fill').style.width = pct + '%';
   document.getElementById('salary-progress-text').textContent = fmtMoney(available) + ' ريال متبقي';
   document.getElementById('salary-progress-total').textContent = 'من ' + fmtMoney(totalIncome) + ' ريال';
+  document.getElementById('salary-progress-pct').textContent = '📅 ' + Math.round(pct) + '%';
 
   await renderDailyAvailableWidget(available);
 }
