@@ -74,10 +74,15 @@ p { margin:4px 0; }
 .hero-eye { background:rgba(255,255,255,0.18); border:none; width:26px; height:26px; border-radius:50%; color:inherit; font-size:0.8rem; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
 .hero-amount { font-size:2.2rem; font-weight:800; margin:2px 0 12px; letter-spacing:-0.02em; }
 .hero-amount.blurred { filter:blur(9px); user-select:none; }
-.hero-badge { display:inline-block; background:rgba(255,255,255,0.18); padding:5px 12px; border-radius:20px; font-size:0.76rem; font-weight:700; }
-.hero-projected { margin-top:8px; font-size:0.76rem; opacity:0.85; }
-.hero-projected b { font-weight:800; }
-.hero-illustration { width:74px; height:74px; flex-shrink:0; opacity:0.95; position:relative; }
+.hero-incomplete { font-size:0.95rem; font-weight:700; line-height:1.7; margin:6px 0 12px; }
+.hero-cta { background:rgba(255,255,255,0.95); color:#0e4536; border:none; border-radius:14px; padding:10px 18px; font-weight:800; font-size:0.9rem; }
+.hero-rows { display:flex; flex-direction:column; gap:4px; margin-top:6px; font-size:0.8rem; }
+.hero-rows > div { display:flex; justify-content:space-between; align-items:baseline; gap:10px; opacity:0.95; }
+.hero-rows b { white-space:nowrap; }
+.hero-rows small { opacity:0.8; font-size:0.7rem; }
+.hero-shortfall { margin-top:8px; background:rgba(0,0,0,0.25); border-radius:12px; padding:6px 10px; font-size:0.8rem; font-weight:700; }
+.hide-amounts .sensitive { filter:blur(9px); user-select:none; }
+.hero-illustration { width:52px; height:52px; flex-shrink:0; opacity:0.9; position:relative; align-self:flex-start; }
 
 /* ===== Stat row ===== */
 .stat-row { display:grid; grid-template-columns:repeat(4,1fr); gap:8px; margin-bottom:16px; }
@@ -299,6 +304,19 @@ input:checked + .toggle-slider::before { transform:translateX(-22px); }
   .print-only .pr-summary .lbl { font-size:0.72rem; color:#555; }
   .print-only .pr-summary .val { font-size:1rem; font-weight:700; }
 }
+.daily-card--info { background:var(--surface); border:1px solid var(--border); color:var(--text); }
+.daily-card--info .cap { opacity:1; font-size:0.85rem; line-height:1.7; }
+.upcoming-row { display:flex; justify-content:space-between; align-items:center; gap:10px; padding:9px 0; border-bottom:1px solid var(--border); font-size:0.88rem; }
+.upcoming-row--late b:first-child, .upcoming-row--late .card-sub { color:var(--expense); }
+.upcoming-total { margin-top:10px; font-size:0.88rem; }
+[data-theme="light"] .widget-icon { background:var(--surface2); color:var(--text); }
+.month-caption { font-size:0.78rem; color:var(--muted); margin:4px 2px 8px; }
+.onboarding { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:16px; margin-bottom:16px; }
+.onboarding-title { color:var(--text); font-size:1rem; margin:0 0 4px; }
+.onboarding-actions { display:flex; flex-direction:column; gap:8px; margin-top:12px; }
+.btn-secondary { background:var(--surface2); color:var(--text); border:1px solid var(--border); }
+.form-error { color:var(--expense); font-size:0.82rem; min-height:1.2em; margin:0; }
+.accounts-total { font-size:1.7rem; font-weight:800; margin-top:4px; }
 </style>
 </head>
 <body>
@@ -308,6 +326,7 @@ input:checked + .toggle-slider::before { transform:translateX(-22px); }
   <div class="drawer-header"><h2>القائمة</h2><button class="icon-btn" id="close-drawer">✕</button></div>
   <div class="drawer-grid">
     <button class="drawer-item" data-view="view-income"><span class="emoji">💰</span> الدخل</button>
+    <button class="drawer-item" data-view="view-accounts"><span class="emoji">🏦</span> الحسابات</button>
     <button class="drawer-item" data-view="view-calendar"><span class="emoji">📅</span> التقويم المالي</button>
     <button class="drawer-item" data-view="view-reports"><span class="emoji">📊</span> التقارير</button>
     <button class="drawer-item" data-view="view-vision"><span class="emoji">🔮</span> الرؤية</button>
@@ -346,6 +365,23 @@ input:checked + .toggle-slider::before { transform:translateX(-22px); }
     <input type="date" id="expense-date" required>
     <input type="text" id="expense-note" placeholder="ملاحظة (اختياري)">
     <button type="submit" class="btn btn-expense">إضافة مصروف</button>
+  </form>
+</div>
+
+<div class="modal-panel" id="modal-setup-balance" role="dialog" aria-labelledby="setup-balance-title">
+  <div class="modal-header"><h2 id="setup-balance-title">كم لديك حاليًا؟</h2><button class="icon-btn" id="close-modal-setup" aria-label="إغلاق">✕</button></div>
+  <p class="card-sub" style="margin:0 0 12px">أدخل المبلغ الموجود فعلياً معك الآن (في حسابك أو نقداً). تقدر تضيف باقي حساباتك لاحقاً من صفحة «الحسابات».</p>
+  <form id="setup-balance-form">
+    <input type="number" id="setup-balance-amount" placeholder="المبلغ الحالي بالريال" min="0" step="0.01" inputmode="decimal">
+    <input type="text" id="setup-balance-name" placeholder="اسم الحساب (اختياري، مثال: الراجحي)" maxlength="40" autocomplete="off">
+    <div class="pill-grid" id="setup-balance-type-grid">
+      <button type="button" class="pill-btn selected" data-val="bank">بنك</button>
+      <button type="button" class="pill-btn" data-val="cash">نقد</button>
+    </div>
+    <input type="hidden" id="setup-balance-type" value="bank">
+    <p class="form-error" id="setup-balance-error" role="alert"></p>
+    <button type="submit" class="btn btn-primary">حفظ الرصيد</button>
+    <button type="button" class="btn btn-secondary" id="setup-balance-skip">تخطي الآن</button>
   </form>
 </div>
 
@@ -417,15 +453,13 @@ input:checked + .toggle-slider::before { transform:translateX(-22px); }
 
   <!-- ============ الرئيسية ============ -->
   <div class="view active" id="view-home">
-    <div class="hero-card">
+    <div class="hero-card" id="hero-card">
       <div class="hero-content">
         <div class="hero-top-row">
-          <span class="hero-label">صافي المتاح حالياً</span>
-          <button class="hero-eye no-print" id="hero-eye-toggle" aria-label="إخفاء/إظهار المبلغ">👁</button>
+          <span class="hero-label">المتاح للصرف</span>
+          <button class="hero-eye no-print" id="hero-eye-toggle" aria-label="إخفاء/إظهار المبالغ" aria-pressed="false">👁</button>
         </div>
-        <div class="hero-amount" id="hero-available">0 ريال</div>
-        <span class="hero-badge" id="hero-badge">جاري الحساب...</span>
-        <div class="hero-projected" id="hero-projected"></div>
+        <div id="hero-body"><div class="hero-incomplete">جاري الحساب...</div></div>
       </div>
       <svg class="hero-illustration" viewBox="0 0 100 100" aria-hidden="true">
         <rect x="8" y="30" width="84" height="56" rx="12" fill="rgba(255,255,255,0.16)"/>
@@ -435,26 +469,57 @@ input:checked + .toggle-slider::before { transform:translateX(-22px); }
       </svg>
     </div>
 
-    <div class="stat-row">
-      <div class="stat-card stat-saving" data-view="view-savings"><span class="stat-icon-badge">💎</span><span class="stat-lbl">الادخار</span><span class="stat-val" id="dash-saving">0</span><span class="stat-unit">ريال</span><span class="stat-chevron">‹</span></div>
-      <div class="stat-card stat-expense" data-view="view-expenses"><span class="stat-icon-badge">🧾</span><span class="stat-lbl">المصروفات</span><span class="stat-val" id="dash-expense">0</span><span class="stat-unit">ريال</span><span class="stat-chevron">‹</span></div>
-      <div class="stat-card stat-obligation" data-view="view-obligations"><span class="stat-icon-badge">📋</span><span class="stat-lbl">الالتزامات</span><span class="stat-val" id="dash-obligation">0</span><span class="stat-unit">ريال</span><span class="stat-chevron">‹</span></div>
-      <div class="stat-card stat-income" data-view="view-income"><span class="stat-icon-badge">💵</span><span class="stat-lbl">الدخل</span><span class="stat-val" id="dash-income">0</span><span class="stat-unit">ريال</span><span class="stat-chevron">‹</span></div>
+    <div id="onboarding-box" class="onboarding" style="display:none">
+      <h3 class="onboarding-title">ابدأ بإضافة رصيدك الحالي</h3>
+      <p class="card-sub">بعدها أضف دخلك والتزاماتك ومصروفاتك ليحسب التطبيق المتاح للصرف.</p>
+      <div class="onboarding-actions">
+        <button type="button" class="btn btn-income" id="onb-income">+ إضافة دخل</button>
+        <button type="button" class="btn btn-obligation" id="onb-obligation">+ إضافة التزام</button>
+        <button type="button" class="btn btn-expense" id="onb-expense">+ إضافة مصروف</button>
+      </div>
     </div>
 
-    <div class="widget">
-      <div class="widget-head"><span class="widget-icon">🎯</span><span class="widget-title">المتبقي من الراتب هذا الشهر</span></div>
-      <div class="progress-track"><div class="progress-fill" id="salary-progress-fill" style="width:0%"></div></div>
-      <div class="progress-caption"><span><span id="salary-progress-text">0 ريال</span> <span id="salary-progress-total">من 0 ريال</span></span><span class="progress-pct-chip" id="salary-progress-pct">📅 0%</span></div>
+    <div id="month-status-block">
+      <p class="month-caption">وضع الشهر — أرقام فعلية حتى اليوم</p>
+      <div class="stat-row">
+        <div class="stat-card stat-saving" data-view="view-savings"><span class="stat-icon-badge">💎</span><span class="stat-lbl">ادخار الشهر</span><span class="stat-val" id="dash-saving">0</span><span class="stat-unit">ريال</span><span class="stat-chevron">‹</span></div>
+        <div class="stat-card stat-expense" data-view="view-expenses"><span class="stat-icon-badge">🧾</span><span class="stat-lbl">المصروفات</span><span class="stat-val" id="dash-expense">0</span><span class="stat-unit">ريال</span><span class="stat-chevron">‹</span></div>
+        <div class="stat-card stat-obligation" data-view="view-obligations"><span class="stat-icon-badge">📋</span><span class="stat-lbl">التزامات مدفوعة</span><span class="stat-val" id="dash-obligation">0</span><span class="stat-unit">ريال</span><span class="stat-chevron">‹</span></div>
+        <div class="stat-card stat-income" data-view="view-income"><span class="stat-icon-badge">💵</span><span class="stat-lbl">الدخل المسجّل</span><span class="stat-val" id="dash-income">0</span><span class="stat-unit">ريال</span><span class="stat-chevron">‹</span></div>
+      </div>
     </div>
 
     <div id="daily-available-widget"></div>
+    <div id="upcoming-widget"></div>
 
     <div class="section-head"><h2>الالتزامات النشطة</h2><button class="link-btn" data-view="view-obligations">التفاصيل ←</button></div>
     <div id="home-obligations"></div>
 
     <div class="section-head"><h2>أحدث المصروفات</h2><button class="link-btn" data-view="view-expenses">التفاصيل ←</button></div>
     <div id="home-expenses"></div>
+  </div>
+
+  <!-- ============ الحسابات ============ -->
+  <div class="view" id="view-accounts">
+    <h2>الحسابات</h2>
+    <div class="widget">
+      <div class="widget-head"><span class="widget-icon">🏦</span><span class="widget-title">إجمالي الرصيد الحالي</span></div>
+      <div class="accounts-total sensitive" id="accounts-total">—</div>
+    </div>
+    <p class="card-sub" id="accounts-note">الرصيد يُحدَّث يدوياً حالياً: تسجيل مصروف أو دفعة لا يغيّره تلقائياً، وسيُربط بالحسابات في التحديث القادم.</p>
+    <form id="account-form" class="no-print">
+      <input type="hidden" id="account-edit-id" value="">
+      <input type="text" id="account-name" placeholder="اسم الحساب (مثال: الراجحي)" maxlength="40" autocomplete="off">
+      <select id="account-type" aria-label="نوع الحساب">
+        <option value="bank">بنك</option><option value="cash">نقد</option><option value="savings">ادخار</option><option value="wallet">محفظة</option><option value="other">أخرى</option>
+      </select>
+      <input type="number" id="account-balance" placeholder="الرصيد الحالي" min="0" step="0.01" inputmode="decimal">
+      <p class="form-error" id="account-error" role="alert"></p>
+      <button type="submit" class="btn btn-primary" id="account-submit-btn">إضافة حساب</button>
+      <button type="button" class="btn btn-secondary" id="account-cancel-edit" style="display:none">إلغاء التعديل</button>
+    </form>
+    <h3>حساباتي</h3>
+    <div id="accounts-list"></div>
   </div>
 
   <!-- ============ الدخل ============ -->
@@ -593,6 +658,378 @@ input:checked + .toggle-slider::before { transform:translateX(-22px); }
 </nav>
 
 <script src="https://cdn.jsdelivr.net/npm/dexie/dist/dexie.min.js"></script>
+<script id="financial-engine">
+/* ==========================================================================
+   التزاماتي — المحرك المالي المركزي (financialEngine) — Sprint 1
+   --------------------------------------------------------------------------
+   قواعد التصميم:
+   1) كل الدوال نقية (pure): تأخذ لقطة بيانات (snapshot) وتُرجع نتيجة. لا تلمس DB ولا DOM.
+   2) كل واجهات التطبيق (الرئيسية، التقارير، الرؤية، PDF) تستدعي هذا المحرك فقط.
+   3) لا تقريب داخل الحساب — التقريب عند العرض فقط.
+   4) لا أرقام مخترعة: إذا البيانات ناقصة تُرجع الدالة complete:false مع السبب.
+   5) الرصيد الحالي = ما أدخله المستخدم في الحسابات فقط. الدخل المتوقع لا يدخل الرصيد أبداً.
+   6) نصوص العرض ليست هنا: التنبيهات تُرجع code + params، والواجهة تترجمها (i18n).
+
+   شكل اللقطة snapshot:
+   { today:'YYYY-MM-DD', accounts[], income[], transactions[], expenses[], recurringExpenses[],
+     obligations[], installments[], payments[], savingsGoals[], savingsLog[] }
+   ========================================================================== */
+(function (root) {
+  'use strict';
+
+  /* ----------------------------- التواريخ المحلية ----------------------------- */
+  const pad2 = n => String(n).padStart(2, '0');
+  const DATE_RE = /^(\d{4})-(\d{2})-(\d{2})$/;
+
+  function parseLocalDate(str) {
+    if (typeof str !== 'string') return null;
+    const m = DATE_RE.exec(str);
+    if (!m) return null;
+    const y = +m[1], mo = +m[2], d = +m[3];
+    const dt = new Date(y, mo - 1, d);
+    if (dt.getFullYear() !== y || dt.getMonth() !== mo - 1 || dt.getDate() !== d) return null; // تاريخ غير موجود (مثل 2026-02-31)
+    return dt;
+  }
+  function formatLocalDate(d) {
+    return d.getFullYear() + '-' + pad2(d.getMonth() + 1) + '-' + pad2(d.getDate());
+  }
+  function todayLocal(now) { return formatLocalDate(now || new Date()); }
+  function daysInMonth(y, m1) { return new Date(y, m1, 0).getDate(); }
+  function addDaysLocal(str, n) {
+    const d = parseLocalDate(str); if (!d) return null;
+    return formatLocalDate(new Date(d.getFullYear(), d.getMonth(), d.getDate() + n));
+  }
+  // يضيف n أشهر ويثبّت اليوم على آخر يوم في الشهر الهدف إذا لزم (31 يناير + 1 شهر = 28/29 فبراير)
+  function addMonthsLocal(str, n) {
+    const d = parseLocalDate(str); if (!d) return null;
+    const total = d.getFullYear() * 12 + d.getMonth() + n;
+    const y = Math.floor(total / 12), m = ((total % 12) + 12) % 12;
+    const day = Math.min(d.getDate(), daysInMonth(y, m + 1));
+    return y + '-' + pad2(m + 1) + '-' + pad2(day);
+  }
+  function daysBetween(a, b) { // عدد الأيام من a إلى b (موجب إذا b بعد a) — محصّن ضد التوقيت الصيفي
+    const da = parseLocalDate(a), db = parseLocalDate(b);
+    if (!da || !db) return null;
+    return Math.round((Date.UTC(db.getFullYear(), db.getMonth(), db.getDate()) - Date.UTC(da.getFullYear(), da.getMonth(), da.getDate())) / 86400000);
+  }
+  const monthOf = str => str.slice(0, 7);
+  function monthStart(monthStr) { return monthStr + '-01'; }
+  function monthEnd(monthStr) { const [y, m] = monthStr.split('-').map(Number); return monthStr + '-' + pad2(daysInMonth(y, m)); }
+  function addMonthsToMonth(monthStr, n) { return addMonthsLocal(monthStart(monthStr), n).slice(0, 7); }
+  function monthsBetween(fromMonth, toMonth) {
+    const [fy, fm] = fromMonth.split('-').map(Number), [ty, tm] = toMonth.split('-').map(Number);
+    return (ty - fy) * 12 + (tm - fm);
+  }
+  function dayInMonth(day, monthStr) { // يوم N من الشهر مع تثبيته على آخر يوم إذا الشهر أقصر
+    const [y, m] = monthStr.split('-').map(Number);
+    return monthStr + '-' + pad2(Math.min(day, daysInMonth(y, m)));
+  }
+
+  const dateUtils = { parseLocalDate, formatLocalDate, todayLocal, addDaysLocal, addMonthsLocal, daysBetween, monthOf, monthStart, monthEnd, addMonthsToMonth, monthsBetween, dayInMonth, daysInMonth };
+
+  /* ------------------------------- أدوات عامة ------------------------------- */
+  const FREQ_MONTHS = { monthly: 1, quarterly: 3, semiannual: 6, yearly: 12 };
+  const arr = x => (Array.isArray(x) ? x : []);
+  const num = x => { const n = Number(x); return Number.isFinite(n) ? n : 0; };
+  const isLive = x => !!x && x.active !== false && !x.deleted_at && !x.archived;
+  const sum = (list, fn) => list.reduce((s, x) => s + num(fn(x)), 0);
+  const isValidDay = d => Number.isInteger(d) && d >= 1 && d <= 31;
+
+  /* ------------------------------- الرصيد الحالي ------------------------------- */
+  // المال الموجود فعلياً الآن = مجموع أرصدة الحسابات النشطة التي أدخلها المستخدم.
+  function getCurrentBalance(s) {
+    const accounts = arr(s.accounts).filter(isLive);
+    const byType = {};
+    accounts.forEach(a => { byType[a.type || 'other'] = (byType[a.type || 'other'] || 0) + num(a.balance); });
+    // تاريخ آخر تحديث للرصيد (محلي) — الرصيد يدوي حالياً، فنُظهر متى أُدخل/عُدّل لتجنب الإيحاء بدقة لحظية
+    let asOf = null;
+    accounts.forEach(a => {
+      const iso = a.updated_at || a.created_at; const d = iso ? new Date(iso) : null;
+      if (d && !isNaN(d.getTime())) { const local = formatLocalDate(d); if (!asOf || local > asOf) asOf = local; }
+    });
+    return {
+      hasData: accounts.length > 0,
+      total: accounts.length > 0 ? sum(accounts, a => a.balance) : null,
+      asOf,
+      count: accounts.length,
+      byType,
+      accounts: accounts.map(a => ({ id: a.id, name: a.name, type: a.type || 'other', balance: num(a.balance) }))
+    };
+  }
+
+  /* ------------------------------------ الدخل ------------------------------------ */
+  // مصادر الدخل الحالية تحمل "يوم" فقط (pay_date = 1..31) وتُعامل كتكرار شهري.
+  // Sprint 2 سيضيف تواريخ فعلية وتكرارات أخرى.
+  function scheduleInfo(s) {
+    const sources = arr(s.income).filter(isLive);
+    const schedulable = sources.filter(x => isValidDay(Number(x.pay_date)));
+    return { sources, schedulable, unschedulable: sources.filter(x => !isValidDay(Number(x.pay_date))) };
+  }
+  function isOccurrenceReceived(s, sourceId, date) {
+    return arr(s.transactions).some(t => t && t.type === 'income' && t.reference_type === 'income_source' &&
+      String(t.reference_id) === String(sourceId) && t.occurrence_date === date && !t.deleted_at);
+  }
+  function incomeOccurrences(s, fromDate, toDate) {
+    const { schedulable } = scheduleInfo(s);
+    const items = [];
+    if (toDate < fromDate) return items;
+    let month = monthOf(fromDate);
+    const lastMonth = monthOf(toDate);
+    let guard = 0;
+    while (month <= lastMonth && guard++ < 1200) {
+      schedulable.forEach(src => {
+        const date = dayInMonth(Number(src.pay_date), month);
+        if (date >= fromDate && date <= toDate && !isOccurrenceReceived(s, src.id, date)) {
+          items.push({ sourceId: src.id, name: src.source_name, amount: num(src.amount), date });
+        }
+      });
+      month = addMonthsToMonth(month, 1);
+    }
+    return items.sort((a, b) => a.date.localeCompare(b.date));
+  }
+  // الدخل الذي لم يُسجَّل استلامه بعد ويقع موعده بين fromDate و toDate
+  function getExpectedIncome(s, fromDate, toDate) {
+    const from = fromDate || s.today, to = toDate || monthEnd(monthOf(s.today));
+    const items = incomeOccurrences(s, from, to);
+    return { from, to, items, total: sum(items, i => i.amount), unschedulableCount: scheduleInfo(s).unschedulable.length };
+  }
+  // الدخل الذي دخل فعلاً (معاملات type=income). tracked=false يعني لا توجد أي معاملة دخل مسجّلة بعد.
+  function getReceivedIncome(s, fromDate, toDate) {
+    const all = arr(s.transactions).filter(t => t && t.type === 'income' && !t.deleted_at);
+    const items = all.filter(t => t.date >= fromDate && t.date <= toDate);
+    return { from: fromDate, to: toDate, items, total: sum(items, t => t.amount), tracked: all.length > 0 };
+  }
+  function getNextPayday(s, fromDate) {
+    const from = fromDate || s.today;
+    const info = scheduleInfo(s);
+    if (info.sources.length === 0) return { found: false, reason: 'no_income' };
+    if (info.schedulable.length === 0) return { found: false, reason: 'no_pay_date' };
+    const limit = addMonthsLocal(from, 14);
+    const list = incomeOccurrences(s, from, limit);
+    if (list.length === 0) return { found: false, reason: 'no_pay_date' };
+    const first = list[0];
+    const daysUntil = daysBetween(s.today, first.date);
+    return { found: true, date: first.date, daysUntil, isToday: daysUntil === 0, sourceId: first.sourceId, sourceName: first.name, amount: first.amount };
+  }
+
+  /* ---------------------------- الاستحقاقات القادمة ---------------------------- */
+  function liveObligationMap(s) {
+    const map = {};
+    arr(s.obligations).filter(o => isLive(o) && o.status !== 'closed').forEach(o => { map[o.id] = o; });
+    return map;
+  }
+  // أقساط لم تُدفع (due/late): المتأخرة (قبل fromDate) + التي بين fromDate و toDate
+  function getUpcomingObligations(s, fromDate, toDate, opts) {
+    const includeOverdue = !opts || opts.includeOverdue !== false;
+    const from = fromDate || s.today, to = toDate || monthEnd(monthOf(s.today));
+    const obs = liveObligationMap(s);
+    const items = [];
+    arr(s.installments).forEach(i => {
+      const ob = obs[i.obligation_id];
+      if (!ob || (i.status !== 'due' && i.status !== 'late')) return;
+      const overdue = i.due_date < s.today && i.due_date < from;
+      if ((i.due_date >= from && i.due_date <= to) || (includeOverdue && overdue)) {
+        items.push({ installmentId: i.id, obligationId: ob.id, name: ob.name, amount: num(i.amount), dueDate: i.due_date, daysUntil: daysBetween(s.today, i.due_date), overdue: i.due_date < s.today });
+      }
+    });
+    items.sort((a, b) => a.dueDate.localeCompare(b.dueDate));
+    return { from, to, items, total: sum(items, x => x.amount) };
+  }
+  // تكرارات المصروف المتكرر القادمة (بعد اليوم). ما كان موعده اليوم أو قبله تحوّل إلى مصروف فعلي عند تشغيل التطبيق.
+  function getUpcomingRecurringExpenses(s, fromDate, toDate) {
+    const from = fromDate || s.today, to = toDate || monthEnd(monthOf(s.today));
+    const items = [];
+    arr(s.recurringExpenses).filter(isLive).forEach(r => {
+      const step = FREQ_MONTHS[r.frequency] || 1;
+      if (!parseLocalDate(r.due_date)) return;
+      for (let k = 0; k < 600; k++) {
+        const date = addMonthsLocal(r.due_date, k * step);
+        if (date > to) break;
+        if (date >= from && date > s.today) items.push({ recurringId: r.id, name: r.name, amount: num(r.amount), date, daysUntil: daysBetween(s.today, date) });
+      }
+    });
+    items.sort((a, b) => a.date.localeCompare(b.date));
+    return { from, to, items, total: sum(items, x => x.amount) };
+  }
+
+  /* ------------------------------- المحجوز والمتاح ------------------------------- */
+  // أفق الحجز: حتى الراتب القادم إن وُجد، وإلا حتى نهاية الشهر الحالي (ويُذكر ذلك صراحةً في الناتج).
+  function resolveHorizon(s, override) {
+    if (override && override.date) return { date: override.date, kind: override.kind || 'custom' };
+    const p = getNextPayday(s);
+    if (p.found) return { date: p.date, kind: 'payday' };
+    return { date: monthEnd(monthOf(s.today)), kind: 'month_end' };
+  }
+  // المحجوز = التزامات مستحقة (متأخرة + حتى الأفق، ويشمل يوم الأفق نفسه تحوّطاً) + مصروفات متكررة قادمة حتى الأفق
+  function getReservedAmount(s, horizonOverride) {
+    const horizon = resolveHorizon(s, horizonOverride);
+    const obligations = getUpcomingObligations(s, s.today, horizon.date, { includeOverdue: true });
+    const recurring = getUpcomingRecurringExpenses(s, s.today, horizon.date);
+    return { horizon, obligations, recurring, total: obligations.total + recurring.total };
+  }
+  // المتاح للصرف = الرصيد الحالي − المحجوز، ولا يكون سالباً أبداً. النقص يُعرض كعجز متوقع منفصل.
+  function getSpendableAmount(s, horizonOverride) {
+    const balance = getCurrentBalance(s);
+    const reserved = getReservedAmount(s, horizonOverride);
+    if (!balance.hasData) return { complete: false, reason: 'no_balance', balance, reserved, spendable: null, shortfall: null };
+    return {
+      complete: true, balance, reserved,
+      spendable: Math.max(0, balance.total - reserved.total),
+      shortfall: Math.max(0, reserved.total - balance.total)
+    };
+  }
+  // الحد اليومي المقترح = المتاح للصرف (بعد استحقاقات ما قبل الراتب القادم) ÷ الأيام حتى الراتب القادم
+  function getDailySafeSpend(s) {
+    const p = getNextPayday(s);
+    if (!p.found) return { complete: false, reason: p.reason === 'no_income' ? 'no_income' : 'no_payday' };
+    const sp = getSpendableAmount(s, { date: p.date, kind: 'payday' });
+    if (!sp.complete) return { complete: false, reason: 'no_balance', payday: p };
+    if (p.daysUntil <= 0) return { complete: false, reason: 'payday_today', payday: p, spendable: sp.spendable };
+    return { complete: true, amount: sp.spendable / p.daysUntil, days: p.daysUntil, spendable: sp.spendable, shortfall: sp.shortfall, payday: p };
+  }
+
+  /* --------------------------------- ملخص الشهر --------------------------------- */
+  function getMonthActuals(s, monthStr) {
+    const start = monthStart(monthStr), end = monthEnd(monthStr);
+    const received = getReceivedIncome(s, start, end);
+    const expenseItems = arr(s.expenses).filter(e => isLive(e) && e.date >= start && e.date <= end && e.date <= s.today);
+    const payItems = arr(s.payments).filter(p => p && p.paid_date >= start && p.paid_date <= end && p.paid_date <= s.today);
+    const savItems = arr(s.savingsLog).filter(l => l && l.date >= start && l.date <= end && l.date <= s.today);
+    return {
+      month: monthStr,
+      receivedIncome: received,
+      expenses: { items: expenseItems, total: sum(expenseItems, e => e.amount), count: expenseItems.length },
+      obligationPayments: { items: payItems, total: sum(payItems, p => p.amount_paid), count: payItems.length },
+      savings: { items: savItems, total: sum(savItems, l => l.amount), count: savItems.length }
+    };
+  }
+  // خطة الادخار الشهرية: كل هدف يتوقف عن الاحتساب بعد اكتماله
+  function savingsPlanForMonthIndex(s, idx) {
+    return arr(s.savingsGoals).filter(isLive).reduce((acc, g) => {
+      const remaining = Math.max(0, num(g.target_amount) - num(g.current_amount));
+      const monthly = num(g.monthly_contribution);
+      if (monthly <= 0 || remaining <= 0) return acc;
+      const monthsToComplete = Math.ceil(remaining / monthly);
+      return idx < monthsToComplete ? acc + monthly : acc;
+    }, 0);
+  }
+  function projectedSavingsBalance(s, idx) {
+    return arr(s.savingsGoals).filter(isLive).reduce((acc, g) => {
+      const monthly = num(g.monthly_contribution), cur = num(g.current_amount), target = num(g.target_amount);
+      return acc + (monthly > 0 ? Math.min(Math.max(target, cur), cur + monthly * (idx + 1)) : cur);
+    }, 0);
+  }
+  function getMonthForecast(s, monthStr) {
+    const curMonth = monthOf(s.today);
+    const empty = { month: monthStr, past: true, expectedIncome: { items: [], total: 0 }, obligations: { items: [], total: 0 }, recurring: { items: [], total: 0 }, plannedSavings: 0, net: 0, netAfterPlannedSavings: 0, projectedSavingsBalance: 0 };
+    if (monthStr < curMonth) return empty;
+    const idx = monthsBetween(curMonth, monthStr);
+    const from = monthStr === curMonth ? s.today : monthStart(monthStr), to = monthEnd(monthStr);
+    const expectedIncome = getExpectedIncome(s, from, to);
+    const obligations = getUpcomingObligations(s, from, to, { includeOverdue: monthStr === curMonth });
+    const recurring = getUpcomingRecurringExpenses(s, from, to);
+    const plannedSavings = savingsPlanForMonthIndex(s, idx);
+    const net = expectedIncome.total - obligations.total - recurring.total;
+    return { month: monthStr, past: false, expectedIncome, obligations, recurring, plannedSavings, net, netAfterPlannedSavings: net - plannedSavings, projectedSavingsBalance: projectedSavingsBalance(s, idx) };
+  }
+  function getMonthlyCashFlow(s, monthStr) {
+    const actual = getMonthActuals(s, monthStr);
+    const out = actual.expenses.total + actual.obligationPayments.total + actual.savings.total;
+    return {
+      month: monthStr,
+      actual: { in: actual.receivedIncome.total, incomeTracked: actual.receivedIncome.tracked, out: { expenses: actual.expenses.total, obligations: actual.obligationPayments.total, savings: actual.savings.total, total: out }, net: actual.receivedIncome.total - out },
+      forecast: getMonthForecast(s, monthStr)
+    };
+  }
+
+  /* ------------------------------- الديون والادخار ------------------------------- */
+  function getDebtSummary(s) {
+    const obs = arr(s.obligations).filter(o => isLive(o) && o.status !== 'closed');
+    const items = obs.map(o => {
+      const insts = arr(s.installments).filter(i => i.obligation_id === o.id && i.status !== 'cancelled');
+      const unpaid = insts.filter(i => i.status !== 'paid').sort((a, b) => a.due_date.localeCompare(b.due_date));
+      const paid = sum(arr(s.payments).filter(p => p.obligation_id === o.id), p => p.amount_paid);
+      const step = FREQ_MONTHS[o.frequency] || 1;
+      return {
+        id: o.id, name: o.name, remaining: Math.max(0, num(o.total_amount) - paid), installmentAmount: num(o.installment_amount),
+        monthlyEquivalent: num(o.installment_amount) / step, remainingInstallments: unpaid.length,
+        nextDue: unpaid.length ? unpaid[0].due_date : null,
+        endDate: insts.length ? insts.reduce((mx, i) => (i.due_date > mx ? i.due_date : mx), insts[0].due_date) : null
+      };
+    }).sort((a, b) => (a.endDate || '9999').localeCompare(b.endDate || '9999'));
+    return { count: items.length, totalRemaining: sum(items, x => x.remaining), monthlyCommitment: sum(items, x => x.monthlyEquivalent), items };
+  }
+  function getSavingsSummary(s) {
+    const goals = arr(s.savingsGoals).filter(isLive).map(g => {
+      const target = num(g.target_amount), current = num(g.current_amount), monthly = num(g.monthly_contribution);
+      const remaining = Math.max(0, target - current);
+      const monthsToGo = remaining === 0 ? 0 : (monthly > 0 ? Math.ceil(remaining / monthly) : null);
+      return { id: g.id, name: g.name, target, current, monthly, remaining, pct: target > 0 ? Math.min(100, (current / target) * 100) : 0, monthsToGo, eta: monthsToGo === null ? null : addMonthsLocal(s.today, monthsToGo) };
+    });
+    return { count: goals.length, totalSaved: sum(goals, g => g.current), totalTarget: sum(goals, g => g.target), monthlyPlanned: sum(goals, g => g.monthly), goals };
+  }
+
+  /* --------------------------------- التنبيهات --------------------------------- */
+  // ترجع code + params فقط. الأنواع المتاحة الآن: setup / overdue / due_today / due_soon / cash_gap / income_today / income_soon
+  // (الميزانيات والأهداف وانتهاء الالتزام تُضاف في Sprints لاحقة)
+  const SOON_DAYS = 7;
+  function getFinancialAlerts(s) {
+    const alerts = [];
+    const balance = getCurrentBalance(s);
+    if (!balance.hasData) alerts.push({ type: 'setup', severity: 'info', code: 'setup_balance', params: {} });
+    const hasIncome = scheduleInfo(s);
+    if (hasIncome.sources.length > 0 && hasIncome.schedulable.length === 0) alerts.push({ type: 'setup', severity: 'info', code: 'setup_payday', params: {} });
+
+    const soonEnd = addDaysLocal(s.today, SOON_DAYS);
+    const obl = getUpcomingObligations(s, s.today, soonEnd, { includeOverdue: true });
+    obl.items.forEach(i => {
+      if (i.overdue) alerts.push({ type: 'overdue', severity: 'danger', code: 'obligation_overdue', params: { name: i.name, amount: i.amount, date: i.dueDate, days: -i.daysUntil } });
+      else if (i.daysUntil === 0) alerts.push({ type: 'due_today', severity: 'warning', code: 'obligation_due_today', params: { name: i.name, amount: i.amount } });
+      else alerts.push({ type: 'due_soon', severity: 'info', code: 'obligation_due_soon', params: { name: i.name, amount: i.amount, date: i.dueDate, days: i.daysUntil } });
+    });
+    if (balance.hasData && obl.total > 0) {
+      alerts.push({ type: 'cash_gap', severity: obl.total > balance.total ? 'danger' : 'info', code: 'cash_vs_obligations', params: { balance: balance.total, obligations: obl.total, afterObligations: Math.max(0, balance.total - obl.total), shortfall: Math.max(0, obl.total - balance.total), days: SOON_DAYS } });
+    }
+    const p = getNextPayday(s);
+    if (p.found) {
+      if (p.isToday) alerts.push({ type: 'income_today', severity: 'info', code: 'income_today', params: { name: p.sourceName, amount: p.amount } });
+      else if (p.daysUntil <= SOON_DAYS) alerts.push({ type: 'income_soon', severity: 'info', code: 'income_soon', params: { name: p.sourceName, amount: p.amount, date: p.date, days: p.daysUntil } });
+    }
+    return alerts;
+  }
+
+  /* --------------------------- حالة الرئيسية دفعة واحدة --------------------------- */
+  // تُستدعى مرة واحدة عند فتح الرئيسية، وتُمرَّر النتيجة إلى كل الـWidgets (dashboardState)
+  function buildState(s) {
+    const month = monthOf(s.today);
+    return {
+      today: s.today, month,
+      balance: getCurrentBalance(s),
+      payday: getNextPayday(s),
+      spendable: getSpendableAmount(s),
+      daily: getDailySafeSpend(s),
+      upcoming7: getUpcomingObligations(s, s.today, addDaysLocal(s.today, 7), { includeOverdue: true }),
+      actuals: getMonthActuals(s, month),
+      forecast: getMonthForecast(s, month),
+      cashFlow: getMonthlyCashFlow(s, month),
+      debt: getDebtSummary(s),
+      savings: getSavingsSummary(s),
+      alerts: getFinancialAlerts(s)
+    };
+  }
+
+  const financialEngine = {
+    getCurrentBalance, getExpectedIncome, getReceivedIncome, getUpcomingObligations, getUpcomingRecurringExpenses,
+    getReservedAmount, getSpendableAmount, getDailySafeSpend, getNextPayday, getMonthActuals, getMonthForecast,
+    getMonthlyCashFlow, getDebtSummary, getSavingsSummary, getFinancialAlerts, buildState,
+    savingsPlanForMonthIndex, projectedSavingsBalance, FREQ_MONTHS
+  };
+
+  if (typeof module !== 'undefined' && module.exports) module.exports = { financialEngine, dateUtils };
+  else { root.financialEngine = financialEngine; root.dateUtils = dateUtils; }
+})(typeof window !== 'undefined' ? window : globalThis);
+
+</script>
 <script>
 window.onerror = function(msg, url, line) {
   document.getElementById('status').style.color = '#ff6b6b';
@@ -612,6 +1049,53 @@ db.version(6).stores({
   incomeLog: '++id, date, total',
   savingsLog: '++id, goal_id, amount, date'
 });
+// v7 (Sprint 1): جدول الحسابات. الجداول الأخرى ومحتواها لا تتغير.
+db.version(7).stores({
+  accounts: '++id, name, type, active'
+});
+const DB_NAME = 'TiltizamatiFreshDB';
+const SCHEMA_VERSION = 7; // رقم إصدار المخطط (Dexie يخزنه ×10 داخل IndexedDB)
+
+/* ===== نسخة أمان تلقائية قبل أي ترقية للمخطط (البند 63) — IndexedDB خام مستقل عن Dexie ===== */
+function idbRequest(req) { return new Promise((res, rej) => { req.onsuccess = () => res(req.result); req.onerror = () => rej(req.error); }); }
+async function readAllRawStores(name) {
+  const conn = await new Promise((res, rej) => { const r = indexedDB.open(name); r.onsuccess = () => res(r.result); r.onerror = () => rej(r.error); r.onblocked = () => rej(new Error('blocked')); });
+  try {
+    const out = {}; const names = Array.from(conn.objectStoreNames);
+    if (names.length === 0) return out;
+    const tx = conn.transaction(names, 'readonly');
+    for (const n of names) out[n] = await idbRequest(tx.objectStore(n).getAll());
+    return out;
+  } finally { conn.close(); }
+}
+async function saveSafetyCopy(entry) {
+  const conn = await new Promise((res, rej) => {
+    const r = indexedDB.open('TiltizamatiSafetyBackups', 1);
+    r.onupgradeneeded = () => { r.result.createObjectStore('snapshots', { keyPath: 'id', autoIncrement: true }); };
+    r.onsuccess = () => res(r.result); r.onerror = () => rej(r.error);
+  });
+  try {
+    const tx = conn.transaction('snapshots', 'readwrite'); const store = tx.objectStore('snapshots');
+    await idbRequest(store.add(entry));
+    const all = await idbRequest(store.getAllKeys());
+    for (const k of all.slice(0, Math.max(0, all.length - 3))) store.delete(k); // نحتفظ بآخر 3 نسخ فقط
+    await new Promise((res, rej) => { tx.oncomplete = res; tx.onerror = () => rej(tx.error); tx.onabort = () => rej(tx.error); });
+  } finally { conn.close(); }
+}
+async function preMigrationSafetyBackup() {
+  try {
+    if (!window.indexedDB || typeof indexedDB.databases !== 'function') return { skipped: 'unsupported' };
+    const info = (await indexedDB.databases()).find(d => d.name === DB_NAME);
+    if (!info || !info.version) return { skipped: 'fresh' };
+    if (info.version >= SCHEMA_VERSION * 10) return { skipped: 'up_to_date' };
+    const data = await readAllRawStores(DB_NAME);
+    const counts = {}; Object.keys(data).forEach(k => { counts[k] = data[k].length; });
+    const entry = { createdAt: new Date().toISOString(), fromVersion: info.version / 10, toVersion: SCHEMA_VERSION, counts, data };
+    await saveSafetyCopy(entry);
+    localStorage.setItem('iltizamati-last-safety-backup', JSON.stringify({ createdAt: entry.createdAt, fromVersion: entry.fromVersion, counts }));
+    return { saved: true, counts };
+  } catch (e) { console.warn('safety backup failed', e); return { failed: String(e && e.message || e) }; }
+}
 
 const DEFAULT_CATEGORIES = ['السكن','الطعام','المطاعم','البقالة','السيارة','البنزين','الصيانة',
   'الاتصالات','الإنترنت','الكهرباء والماء','الصحة','الملابس','التسوق','الترفيه',
@@ -632,15 +1116,8 @@ const TYPE_COLORS = { loan:'#3949ab', car_finance:'#1e88e5', credit_card:'#8e24a
 const FREQ_MONTHS = { monthly:1, quarterly:3, semiannual:6, yearly:12 };
 const OB_FREQ_LABELS = { monthly:'شهري', quarterly:'كل 3 أشهر', semiannual:'نصف سنوي', yearly:'سنوي' };
 
-function addMonths(dateStr, n) {
-  const d = new Date(dateStr);
-  const targetMonth = d.getMonth() + n;
-  const result = new Date(d.getFullYear(), targetMonth, d.getDate());
-  if (result.getMonth() !== ((targetMonth % 12) + 12) % 12) result.setDate(0);
-  return result.toISOString().split('T')[0];
-}
+const { parseLocalDate, formatLocalDate, todayLocal, addMonthsLocal, addDaysLocal, daysBetween, monthOf } = dateUtils;
 function fmtMoney(n) { return (n||0).toLocaleString('en-US', {maximumFractionDigits:0}); }
-function todayStr() { return new Date().toISOString().split('T')[0]; }
 function showToast(msg) { const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),2200); }
 
 function toggleCollapsible(box, toggleBtn) {
@@ -665,7 +1142,7 @@ function toggleCollapsible(box, toggleBtn) {
 function showView(viewId) {
   document.querySelectorAll('.view').forEach(v => v.classList.toggle('active', v.id === viewId));
   document.querySelectorAll('.nav-item').forEach(btn => btn.classList.toggle('active', btn.dataset.view === viewId));
-  const titles = { 'view-home':'التزاماتي','view-income':'الدخل','view-expenses':'المصروفات','view-obligations':'الالتزامات المالية','view-calculator':'حاسبة التمويل','view-savings':'الادخار','view-settings':'الإعدادات','view-calendar':'التقويم المالي','view-reports':'التقارير','view-vision':'الرؤية' };
+  const titles = { 'view-home':'التزاماتي','view-income':'الدخل','view-expenses':'المصروفات','view-obligations':'الالتزامات المالية','view-calculator':'حاسبة التمويل','view-savings':'الادخار','view-settings':'الإعدادات','view-calendar':'التقويم المالي','view-reports':'التقارير','view-vision':'الرؤية','view-accounts':'الحسابات' };
   document.getElementById('page-title').textContent = titles[viewId] || 'التزاماتي';
   const subtitleEl = document.querySelector('.top-subtitle');
   if (subtitleEl) subtitleEl.style.display = (viewId === 'view-home') ? '' : 'none';
@@ -674,6 +1151,7 @@ function showView(viewId) {
   if (viewId === 'view-calendar') renderCalendar();
   if (viewId === 'view-reports') renderReports();
   if (viewId === 'view-vision') renderVision();
+  if (viewId === 'view-accounts') renderAccountsView();
   if (viewId === 'view-income') renderIncomeHistory();
   if (viewId === 'view-savings') renderSavingsHistory();
   if (viewId === 'view-expenses') renderSalaryAllocation();
@@ -705,7 +1183,7 @@ document.getElementById('sheet-note').addEventListener('click', () => { closeShe
 
 /* ===== Add Modals ===== */
 const modalOverlay = document.getElementById('modal-overlay');
-const MODAL_IDS = ['modal-add-expense','modal-add-income','modal-add-obligation','modal-add-goal'];
+const MODAL_IDS = ['modal-add-expense','modal-add-income','modal-add-obligation','modal-add-goal','modal-setup-balance'];
 function openModal(id) {
   modalOverlay.classList.add('open');
   document.getElementById(id).classList.add('open');
@@ -742,9 +1220,9 @@ document.getElementById('theme-quick-toggle').addEventListener('click', () => {
 (function initTheme(){ applyTheme(localStorage.getItem('iltizamati-theme') || 'dark'); })();
 
 document.getElementById('hero-eye-toggle').addEventListener('click', function(){
-  const amt = document.getElementById('hero-available');
-  const hidden = amt.classList.toggle('blurred');
+  const hidden = document.getElementById('view-home').classList.toggle('hide-amounts');
   this.textContent = hidden ? '🙈' : '👁';
+  this.setAttribute('aria-pressed', hidden ? 'true' : 'false');
 });
 
 /* ===== Reset & seed ===== */
@@ -752,7 +1230,8 @@ document.getElementById('reset-test-data').addEventListener('click', async () =>
   if (!confirm('سيتم مسح كل البيانات نهائياً. متأكد؟')) return;
   await db.income.clear(); await db.expenses.clear(); await db.recurringExpenses.clear();
   await db.obligations.clear(); await db.installments.clear(); await db.payments.clear();
-  await db.savingsGoals.clear(); await db.incomeLog.clear(); await db.savingsLog.clear();
+  await db.savingsGoals.clear(); await db.incomeLog.clear(); await db.savingsLog.clear(); await db.accounts.clear();
+  localStorage.removeItem('iltizamati-balance-setup-skipped');
   location.reload();
 });
 async function seedDefaultCategories() {
@@ -791,6 +1270,7 @@ async function populateCategoryGrid(cats) {
 /* ===== Init ===== */
 async function init() {
   const statusEl = document.getElementById('status');
+  await preMigrationSafetyBackup();
   await db.open();
   await seedDefaultCategories();
   statusEl.textContent = 'قاعدة البيانات جاهزة ✓';
@@ -807,9 +1287,11 @@ async function init() {
   await renderObligationList();
   await renderGoalList();
   await renderDashboard();
-  document.getElementById('expense-date').valueAsDate = new Date();
-  document.getElementById('ob-first-date').valueAsDate = new Date();
-  document.getElementById('rec-due-date').valueAsDate = new Date();
+  await renderAccountsView();
+  document.getElementById('expense-date').value = todayLocal();
+  document.getElementById('ob-first-date').value = todayLocal();
+  document.getElementById('rec-due-date').value = todayLocal();
+  await maybeShowBalanceSetup();
 }
 function populateObligationTypeGrid() {
   const grid = document.getElementById('ob-type-grid');
@@ -860,7 +1342,7 @@ function renderListInto(containerId, items, mapFn, emptyMsg) {
 /* ===== الدخل ===== */
 async function logIncomeSnapshot() {
   const total = (await db.income.toArray()).filter(i=>i.active!==false).reduce((s,i)=>s+i.amount,0);
-  const today = todayStr();
+  const today = todayLocal();
   const existing = await db.incomeLog.where('date').equals(today).first();
   if (existing) await db.incomeLog.update(existing.id, { total });
   else await db.incomeLog.add({ date:today, total });
@@ -955,7 +1437,7 @@ document.getElementById('expense-form').addEventListener('submit', async e => {
   const date = document.getElementById('expense-date').value;
   const note = document.getElementById('expense-note').value;
   await db.expenses.add({ category_id:categoryId, amount, name, date, note, active:true, recurring_expense_id:null });
-  e.target.reset(); document.getElementById('expense-date').valueAsDate = new Date(); closeAllModals();
+  e.target.reset(); document.getElementById('expense-date').value = todayLocal(); closeAllModals();
   await populateCategoryDropdowns(); await renderExpenseList(); await renderDashboard(); showToast('تمت إضافة المصروف');
 });
 
@@ -980,14 +1462,15 @@ function buildDonut(containerEl, dataArr, totalLabel) {
   containerEl.appendChild(legend);
 }
 async function getMonthlyExpensesByCategory(monthStr) {
-  const items = (await db.expenses.toArray()).filter(e => e.active!==false && e.date.startsWith(monthStr));
+  const snap = await loadSnapshot();
+  const items = financialEngine.getMonthActuals(snap, monthStr).expenses.items;
   const cats = await db.categories.toArray(); const catMap={}; cats.forEach(c=>catMap[c.id]=c.name);
   const grouped = {};
   items.forEach(e => { const name = catMap[e.category_id] || 'أخرى'; grouped[name] = (grouped[name]||0) + e.amount; });
   return Object.entries(grouped).map(([name,amount]) => ({ name, amount, ...catMeta(name) }));
 }
 async function renderExpenseDonut() {
-  const thisMonth = todayStr().slice(0,7);
+  const thisMonth = todayLocal().slice(0,7);
   const data = await getMonthlyExpensesByCategory(thisMonth);
   buildDonut(document.getElementById('expense-donut-widget'), data, 'إجمالي الشهر');
 }
@@ -996,13 +1479,15 @@ async function renderExpenseDonut() {
 async function renderSalaryAllocation() {
   const widget = document.getElementById('salary-alloc-widget');
   if (!widget) return;
-  const thisMonth = todayStr().slice(0,7);
-  const { totalIncome, totalExpense, totalObligationMonthly, totalSavingThisMonth, available } = await computeCoreNumbers(thisMonth);
+  const thisMonth = todayLocal().slice(0,7);
+  const snap = await loadSnapshot(); const act = financialEngine.getMonthActuals(snap, thisMonth);
+  const totalIncome = financialEngine.getExpectedIncome(snap, dateUtils.monthStart(thisMonth), dateUtils.monthEnd(thisMonth)).total;
+  const usedTotal = act.obligationPayments.total + act.expenses.total + act.savings.total;
   const data = [
-    { name:'الالتزامات', amount: totalObligationMonthly, color:'#a78bfa', icon:'📋' },
-    { name:'المصروفات', amount: totalExpense, color:'#ff6b6b', icon:'🧾' },
-    { name:'الادخار', amount: totalSavingThisMonth, color:'#ffb74d', icon:'💎' },
-    { name:'المتاح', amount: Math.max(0, available), color:'#42a5f5', icon:'💰' }
+    { name:'الالتزامات', amount: act.obligationPayments.total, color:'#a78bfa', icon:'📋' },
+    { name:'المصروفات', amount: act.expenses.total, color:'#ff6b6b', icon:'🧾' },
+    { name:'الادخار', amount: act.savings.total, color:'#ffb74d', icon:'💎' },
+    { name:t('alloc_remaining'), amount: Math.max(0, totalIncome - usedTotal), color:'#42a5f5', icon:'💰' }
   ];
   widget.innerHTML = `<h3 style="margin-top:0">توزيع الراتب هذا الشهر (من ${fmtMoney(totalIncome)} ريال)</h3>
     <div id="salary-alloc-donut"></div>
@@ -1032,13 +1517,13 @@ async function renderSalaryAllocation() {
 
 /* ===== المصروفات المتكررة ===== */
 async function generateDueRecurringExpenses() {
-  const today = todayStr();
+  const today = todayLocal();
   const recs = (await db.recurringExpenses.toArray()).filter(r=>r.active!==false);
   for (const rec of recs) {
     let dueDate = rec.due_date; const monthsStep = FREQ_MONTHS[rec.frequency]||1; let safety=0;
     while (dueDate <= today && safety < 60) {
       await db.expenses.add({ category_id:rec.category_id, amount:rec.amount, name:rec.name, date:dueDate, note:'مصروف متكرر تلقائي', active:true, recurring_expense_id:rec.id });
-      dueDate = addMonths(dueDate, monthsStep); safety++;
+      dueDate = addMonthsLocal(dueDate, monthsStep); safety++;
     }
     if (dueDate !== rec.due_date) await db.recurringExpenses.update(rec.id,{due_date:dueDate});
   }
@@ -1058,7 +1543,7 @@ async function renderRecurringList() {
     const delBtn = document.createElement('button'); delBtn.textContent='حذف'; delBtn.className='delete-btn';
     delBtn.onclick = async () => {
       if (!confirm('حذف "'+item.name+'" نهائياً؟ (المصروفات السابقة الفعلية تبقى بسجلك، وما لم يحن موعده بعد يُحذف)')) return;
-      const today = todayStr();
+      const today = todayLocal();
       await db.recurringExpenses.update(item.id, { active:false });
       await db.expenses.where('recurring_expense_id').equals(item.id).and(e => e.date >= today).delete();
       await renderRecurringList(); await renderExpenseList(); await renderDashboard();
@@ -1088,7 +1573,7 @@ document.getElementById('recurring-form').addEventListener('submit', async e => 
     const id = parseInt(editId);
     await db.recurringExpenses.update(id, { name, amount, category_id:categoryId, due_date:dueDate, frequency });
     // نحدّث أي مصروف مولّد من نفس القاعدة ولسا ما جا موعده الفعلي، عشان يطابق التعديل الجديد
-    const today = todayStr();
+    const today = todayLocal();
     await db.expenses.where('recurring_expense_id').equals(id).and(e => e.date >= today).modify({ name, amount, category_id:categoryId });
     document.getElementById('rec-edit-id').value = '';
     document.getElementById('rec-submit-btn').textContent = 'إضافة مصروف متكرر';
@@ -1097,7 +1582,7 @@ document.getElementById('recurring-form').addEventListener('submit', async e => 
     await db.recurringExpenses.add({ name, amount, category_id:categoryId, due_date:dueDate, frequency, active:true });
     showToast('تمت إضافة المصروف المتكرر');
   }
-  e.target.reset(); document.getElementById('rec-due-date').valueAsDate = new Date();
+  e.target.reset(); document.getElementById('rec-due-date').value = todayLocal();
   await populateCategoryDropdowns(); await generateDueRecurringExpenses();
   await renderRecurringList(); await renderExpenseList(); await renderDashboard();
 });
@@ -1109,7 +1594,7 @@ async function generateInstallments(obligationId, anchorDate, count, amount, alr
   const rows = [];
   for (let i=0;i<count;i++) {
     const offset = i - alreadyPaid; // 0 = تاريخ الدفعة القادمة (المُدخل)، سالب = أقساط مدفوعة سابقة، موجب = أقساط مستقبلية
-    const dueDate = offset===0 ? anchorDate : addMonths(anchorDate, offset*stepMonths);
+    const dueDate = offset===0 ? anchorDate : addMonthsLocal(anchorDate, offset*stepMonths);
     rows.push({ obligation_id:obligationId, due_date:dueDate, amount, status: i<alreadyPaid?'paid':'due', sequence_number:i+1 });
   }
   const ids = await db.installments.bulkAdd(rows, { allKeys:true });
@@ -1142,7 +1627,7 @@ document.getElementById('obligation-form').addEventListener('submit', async e =>
     showToast('تمت إضافة الالتزام');
   }
 
-  e.target.reset(); document.getElementById('ob-first-date').valueAsDate = new Date(); document.getElementById('ob-edit-id').value = '';
+  e.target.reset(); document.getElementById('ob-first-date').value = todayLocal(); document.getElementById('ob-edit-id').value = '';
   document.getElementById('ob-modal-title').textContent = 'إضافة التزام مالي';
   document.getElementById('ob-submit-btn').textContent = 'إضافة التزام';
   closeAllModals();
@@ -1173,7 +1658,7 @@ function openEditObligation(ob) {
 async function markInstallmentPaid(installmentId, obligationId, amount) {
   const inst = await db.installments.get(installmentId);
   if (!inst || inst.status==='paid') return;
-  const today = todayStr();
+  const today = todayLocal();
   await db.payments.add({ installment_id:installmentId, obligation_id:obligationId, amount_paid:amount, paid_date:today, payment_type:'regular' });
   await db.installments.update(installmentId,{status:'paid'});
   await renderObligationList(); await renderDashboard(); showToast('تم تسجيل الدفعة');
@@ -1187,7 +1672,7 @@ async function getObligationFinancials(ob) {
   return { installments, payments, totalPaid, remaining, paidCount };
 }
 async function applyExtraPayment(ob, amount) {
-  const today = todayStr();
+  const today = todayLocal();
   await db.payments.add({ installment_id:null, obligation_id:ob.id, amount_paid:amount, paid_date:today, payment_type:'extra' });
   const { installments, remaining:newRemaining } = await getObligationFinancials(ob);
   const neededRemainingCount = Math.ceil(newRemaining / ob.installment_amount);
@@ -1202,7 +1687,7 @@ async function reconcileObligationAfterEdit(ob) {
   const { installments, remaining } = await getObligationFinancials(ob);
   if (remaining <= 0) {
     for (const inst of installments) if (inst.status!=='paid') await db.installments.update(inst.id,{status:'cancelled'});
-    await db.obligations.update(ob.id, { status:'closed', closed_date: todayStr() });
+    await db.obligations.update(ob.id, { status:'closed', closed_date: todayLocal() });
     return;
   }
   const neededRemainingCount = Math.ceil(remaining / ob.installment_amount);
@@ -1211,7 +1696,7 @@ async function reconcileObligationAfterEdit(ob) {
   for (const inst of toCancel) await db.installments.update(inst.id,{status:'cancelled'});
 }
 async function applyFullPayoff(ob, payoffAmount, fee) {
-  const today = todayStr();
+  const today = todayLocal();
   await db.payments.add({ installment_id:null, obligation_id:ob.id, amount_paid:payoffAmount+fee, paid_date:today, payment_type:'payoff' });
   const { installments } = await getObligationFinancials(ob);
   for (const inst of installments) if (inst.status!=='paid') await db.installments.update(inst.id,{status:'cancelled'});
@@ -1255,7 +1740,7 @@ async function renderObligationList() {
   await renderHomeObligations();
   if (obligations.length===0) { container.innerHTML = '<p class="empty-hint">لا يوجد التزامات نشطة</p>'; return; }
 
-  const today = todayStr();
+  const today = todayLocal();
   const allInstallments = await db.installments.toArray();
   for (const inst of allInstallments) if (inst.status==='due' && inst.due_date<today) await db.installments.update(inst.id,{status:'late'});
 
@@ -1433,7 +1918,7 @@ async function renderGoalList() {
   renderListInto('goal-list', goals, goal => {
     const remaining = Math.max(0, goal.target_amount - goal.current_amount);
     const monthsNeeded = goal.monthly_contribution>0 ? Math.ceil(remaining/goal.monthly_contribution) : null;
-    const expectedDate = monthsNeeded!==null ? addMonths(todayStr(), monthsNeeded) : 'حدد ادخار شهري';
+    const expectedDate = monthsNeeded!==null ? addMonthsLocal(todayLocal(), monthsNeeded) : 'حدد ادخار شهري';
     const progress = goal.target_amount>0 ? Math.min(100,(goal.current_amount/goal.target_amount)*100) : 0;
     const card = document.createElement('div'); card.className='card';
     card.innerHTML = `<div class="card-row"><h3 style="color:var(--text);font-size:1rem;margin:0">${goal.name}</h3><button class="delete-btn goal-delete-btn">حذف الهدف</button></div>
@@ -1450,7 +1935,7 @@ async function renderGoalList() {
     card.querySelector('.goal-add-btn').onclick = async () => {
       const input = card.querySelector('.goal-add-amount'); const add = parseFloat(input.value); if(!add||add<=0)return;
       await db.savingsGoals.update(goal.id,{current_amount: goal.current_amount+add});
-      await db.savingsLog.add({ goal_id: goal.id, amount: add, date: todayStr() });
+      await db.savingsLog.add({ goal_id: goal.id, amount: add, date: todayLocal() });
       input.value = '';
       showToast('تم تحديث المدّخرات'); await renderGoalList(); await renderDashboard(); await renderSavingsHistory();
     };
@@ -1513,94 +1998,235 @@ document.getElementById('goal-form').addEventListener('submit', async e => {
   const name=document.getElementById('goal-name').value, target=parseFloat(document.getElementById('goal-target').value),
     current=parseFloat(document.getElementById('goal-current').value)||0, monthly=parseFloat(document.getElementById('goal-monthly').value);
   const goalId = await db.savingsGoals.add({ name, target_amount:target, current_amount:current, monthly_contribution:monthly, active:true });
-  if (current > 0) await db.savingsLog.add({ goal_id:goalId, amount:current, date: todayStr() });
+  if (current > 0) await db.savingsLog.add({ goal_id:goalId, amount:current, date: todayLocal() });
   e.target.reset(); closeAllModals();
   await renderGoalList(); await renderDashboard(); await renderSavingsHistory(); showToast('تمت إضافة الهدف');
 });
 
-/* ===== Dashboard / Home widgets ===== */
-async function computeCoreNumbers(monthStr) {
-  const today = todayStr();
-  const totalIncome = (await db.income.toArray()).filter(i=>i.active!==false).reduce((s,i)=>s+i.amount,0);
-  const totalExpense = (await db.expenses.toArray()).filter(e=>e.active!==false && e.date.startsWith(monthStr) && e.date<=today).reduce((s,e)=>s+e.amount,0);
-  const obligations = (await db.obligations.toArray()).filter(o=>o.active!==false && o.status!=='closed');
-  let totalObligationMonthly = 0;
-  for (const ob of obligations) {
-    const { installments } = await getObligationFinancials(ob);
-    // لا يُخصم القسط إلا إذا كان مدفوعاً فعلاً، أو حل موعد استحقاقه (وصل تاريخه أو تجاوزه) — مو بمجرد وقوعه بنفس الشهر
-    const isDueNow = installments.some(i => i.due_date.startsWith(monthStr) && (i.status==='paid' || ((i.status==='due'||i.status==='late') && i.due_date<=today)));
-    if (isDueNow) totalObligationMonthly += ob.installment_amount;
-  }
-  const totalSavingThisMonth = (await db.savingsLog.toArray()).filter(l=>l.date.startsWith(monthStr)).reduce((s,l)=>s+l.amount,0);
-  const available = totalIncome - totalObligationMonthly - totalExpense - totalSavingThisMonth;
-  return { totalIncome, totalExpense, totalObligationMonthly, totalSavingThisMonth, available };
+/* ===== i18n (البند 68) — نصوص العرض الجديدة تُقرأ من هنا لا من المنطق ===== */
+const I18N = { ar: {
+  incomplete_balance: 'أكمل رصيدك الحالي لمعرفة المتاح للصرف بدقة.', add_balance: 'إضافة الرصيد',
+  hero_balance: 'الرصيد الحالي', hero_reserved: 'المحجوز', hero_shortfall: 'العجز المتوقع',
+  horizon_payday: 'حتى الراتب القادم ({date})', horizon_month_end: 'حتى نهاية الشهر',
+  daily_label: 'الحد اليومي المقترح', daily_sub: 'خلال {days} يوم حتى الراتب القادم',
+  daily_no_balance: 'أضف رصيدك الحالي لحساب الحد اليومي المقترح.',
+  daily_no_payday: 'أضف موعد دخلك القادم (يوم نزول الراتب) لحساب الحد اليومي المقترح.',
+  daily_no_income: 'أضف مصدر دخل مع يوم نزوله لحساب الحد اليومي المقترح.',
+  daily_payday_today: 'موعد دخلك اليوم — يُحسب الحد اليومي بعد موعد الراتب.',
+  daily_note: 'رقم تقريبي؛ قد يتغير مع المصروفات غير المتوقعة.',
+  stat_income: 'الدخل المسجّل', stat_expenses: 'المصروفات', stat_obligations: 'التزامات مدفوعة', stat_savings: 'ادخار الشهر',
+  not_entered: 'غير مُدخل', complete_balance_short: 'أكمل الرصيد',
+  err_amount_required: 'أدخل مبلغاً صحيحاً.', err_amount_negative: 'المبلغ لا يمكن أن يكون سالباً.', err_name_required: 'أدخل اسم الحساب.',
+  default_account_bank: 'حساب بنكي', default_account_cash: 'نقد',
+  toast_balance_saved: 'تم حفظ الرصيد', toast_account_added: 'تمت إضافة الحساب', toast_account_updated: 'تم تحديث الحساب', toast_account_archived: 'تمت أرشفة الحساب',
+  accounts_empty: 'لا توجد حسابات بعد. أضف رصيدك الحالي ليبدأ التطبيق بحساب المتاح للصرف.',
+  accounts_total_empty: 'غير مُدخل', confirm_archive_account: 'أرشفة الحساب "{name}"؟ لن يدخل رصيده في الحساب، ويبقى سجله محفوظاً.',
+  account_add: 'إضافة حساب', account_save: 'حفظ التعديلات',
+  report_income: 'الدخل المسجّل هذا الشهر', report_expenses: 'المصروفات الفعلية', report_obligations: 'الالتزامات المدفوعة', report_savings: 'ادخار هذا الشهر',
+  report_balance: 'الرصيد الحالي', report_spendable: 'المتاح للصرف', report_reserved: 'المحجوز',
+  vision_note: 'محاكاة مبنية على البيانات المسجّلة، وليست توقعاً مؤكداً.', vision_current_month: 'المتبقي من هذا الشهر',
+  vision_unscheduled: 'بعض مصادر الدخل بلا يوم نزول، ولم تُحتسب في التوقع.',
+  vision_surplus: 'فائض متوقع', vision_deficit: 'عجز متوقع',
+  pdf_title: 'تقرير التزاماتي', pdf_balance: 'الرصيد الحالي', pdf_reserved: 'المحجوز', pdf_spendable: 'المتاح للصرف', pdf_expenses: 'مصروفات الشهر (فعلية)',
+  alloc_remaining: 'المتبقي من الدخل',
+  upcoming_title: 'القادم عليك — خلال 7 أيام', upcoming_total: 'إجمالي المستحق خلال 7 أيام', upcoming_empty: 'لا توجد استحقاقات التزامات خلال 7 أيام.',
+  when_today: 'اليوم', when_tomorrow: 'غدًا', when_in_days: 'بعد {n} أيام', when_overdue: 'متأخر {n} يوم',
+  balance_as_of: 'آخر تحديث {date}',
+  accounts_manual_note: 'الرصيد يُحدَّث يدوياً حالياً: تسجيل مصروف أو دفعة لا يغيّره تلقائياً، وسيُربط بالحسابات في التحديث القادم.'
+}};
+function t(key, params) {
+  let s = Object.prototype.hasOwnProperty.call(I18N.ar, key) ? I18N.ar[key] : key;
+  if (params) Object.keys(params).forEach(k => { s = s.split('{' + k + '}').join(params[k]); });
+  return s;
 }
-async function computeMonthEndNet(monthStr) {
-  const totalIncome = (await db.income.toArray()).filter(i=>i.active!==false).reduce((s,i)=>s+i.amount,0);
-  const totalExpenseFull = (await db.expenses.toArray()).filter(e=>e.active!==false && e.date.startsWith(monthStr)).reduce((s,e)=>s+e.amount,0);
-  const obligations = (await db.obligations.toArray()).filter(o=>o.active!==false && o.status!=='closed');
-  let totalObligationFull = 0;
-  for (const ob of obligations) {
-    const { installments } = await getObligationFinancials(ob);
-    const dueThisMonth = installments.some(i => i.due_date.startsWith(monthStr) && i.status!=='cancelled');
-    if (dueThisMonth) totalObligationFull += ob.installment_amount;
-  }
-  const plannedSavingFull = (await db.savingsGoals.toArray()).filter(g=>g.active!==false).reduce((s,g)=>s+g.monthly_contribution,0);
-  return totalIncome - totalObligationFull - totalExpenseFull - plannedSavingFull;
+function esc(v) { return String(v == null ? '' : v).replace(/[&<>"']/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c])); }
+function parseAmount(str) { // يُرجع { ok, value, error }
+  const raw = String(str == null ? '' : str).trim();
+  if (raw === '') return { ok: false, error: 'err_amount_required' };
+  const v = Number(raw);
+  if (!Number.isFinite(v)) return { ok: false, error: 'err_amount_required' };
+  if (v < 0) return { ok: false, error: 'err_amount_negative' };
+  return { ok: true, value: v };
 }
+
+/* ===== لقطة البيانات للمحرك المالي — تُقرأ مرة واحدة لكل عرض ===== */
+async function loadSnapshot() {
+  const [accounts, income, expenses, recurringExpenses, obligations, installments, payments, savingsGoals, savingsLog] = await Promise.all([
+    db.accounts.toArray(), db.income.toArray(), db.expenses.toArray(), db.recurringExpenses.toArray(), db.obligations.toArray(),
+    db.installments.toArray(), db.payments.toArray(), db.savingsGoals.toArray(), db.savingsLog.toArray()
+  ]);
+  // transactions: جدول المعاملات يُضاف في Sprint 2 — إلى ذلك الحين لا توجد معاملات دخل مسجّلة
+  return { today: todayLocal(), accounts, income, transactions: [], expenses, recurringExpenses, obligations, installments, payments, savingsGoals, savingsLog };
+}
+
+/* ===== الرئيسية — كل الأرقام من financialEngine ===== */
+const ACCOUNT_TYPE_LABELS = { bank: 'بنك', cash: 'نقد', savings: 'ادخار', wallet: 'محفظة', other: 'أخرى' };
+const ACCOUNT_TYPE_ICONS = { bank: '🏦', cash: '💵', savings: '🎯', wallet: '📱', other: '🔹' };
+
+function renderHero(state) {
+  const body = document.getElementById('hero-body');
+  const sp = state.spendable;
+  if (!sp.complete) {
+    body.innerHTML = `<div class="hero-incomplete">${t('incomplete_balance')}</div><button type="button" class="hero-cta no-print" id="hero-add-balance">${t('add_balance')}</button>`;
+    document.getElementById('hero-add-balance').onclick = () => openBalanceSetup();
+    return;
+  }
+  const h = sp.reserved.horizon;
+  const horizonText = h.kind === 'payday' ? t('horizon_payday', { date: h.date }) : t('horizon_month_end');
+  body.innerHTML = `<div class="hero-amount sensitive" id="hero-available">${fmtMoney(sp.spendable)} ريال</div>
+    <div class="hero-rows">
+      <div><span>${t('hero_balance')}${sp.balance.asOf ? ' <small>(' + t('balance_as_of', { date: sp.balance.asOf }) + ')</small>' : ''}</span><b class="sensitive" id="hero-balance-val">${fmtMoney(sp.balance.total)} ريال</b></div>
+      <div><span>${t('hero_reserved')} <small>(${horizonText})</small></span><b class="sensitive" id="hero-reserved-val">${fmtMoney(sp.reserved.total)} ريال</b></div>
+    </div>` + (sp.shortfall > 0 ? `<div class="hero-shortfall" id="hero-shortfall">${t('hero_shortfall')}: <b class="sensitive">${fmtMoney(sp.shortfall)} ريال</b></div>` : '');
+}
+function renderMonthStatus(snapshot, state) {
+  const registered = financialEngine.getExpectedIncome(snapshot, dateUtils.monthStart(state.month), dateUtils.monthEnd(state.month));
+  document.getElementById('dash-income').textContent = fmtMoney(registered.total);
+  document.getElementById('dash-expense').textContent = fmtMoney(state.actuals.expenses.total);
+  document.getElementById('dash-obligation').textContent = fmtMoney(state.actuals.obligationPayments.total);
+  document.getElementById('dash-saving').textContent = fmtMoney(state.actuals.savings.total);
+}
+function renderDailyCard(state) {
+  const el = document.getElementById('daily-available-widget');
+  const d = state.daily;
+  if (d.complete) {
+    el.innerHTML = `<div class="daily-card" id="daily-card"><div class="cap">${t('daily_label')} — ${t('daily_sub', { days: d.days })}</div><div class="amt sensitive" id="daily-amount">${fmtMoney(d.amount)} ريال / يوم</div><div class="cap">${t('daily_note')}</div></div>`;
+    return;
+  }
+  const keyByReason = { no_balance: 'daily_no_balance', no_payday: 'daily_no_payday', no_income: 'daily_no_income', payday_today: 'daily_payday_today' };
+  el.innerHTML = `<div class="daily-card daily-card--info" id="daily-card"><div class="cap"><b>${t('daily_label')}</b></div><div class="cap" id="daily-message">${t(keyByReason[d.reason] || 'daily_no_balance')}</div></div>`;
+}
+function whenLabel(days) {
+  if (days < 0) return t('when_overdue', { n: -days });
+  if (days === 0) return t('when_today');
+  if (days === 1) return t('when_tomorrow');
+  return t('when_in_days', { n: days });
+}
+function renderUpcomingCard(state) {
+  const el = document.getElementById('upcoming-widget'); const u = state.upcoming7;
+  if (u.items.length === 0) { el.innerHTML = `<div class="widget" id="upcoming-card"><div class="widget-head"><span class="widget-icon">🗓️</span><span class="widget-title">${t('upcoming_title')}</span></div><div class="card-sub" id="upcoming-empty">${t('upcoming_empty')}</div></div>`; return; }
+  const rows = u.items.map(i => `<div class="upcoming-row${i.overdue ? ' upcoming-row--late' : ''}"><div><b>${esc(i.name)}</b><div class="card-sub">${whenLabel(i.daysUntil)} · ${i.dueDate}</div></div><b class="sensitive">${fmtMoney(i.amount)} ريال</b></div>`).join('');
+  el.innerHTML = `<div class="widget" id="upcoming-card"><div class="widget-head"><span class="widget-icon">🗓️</span><span class="widget-title">${t('upcoming_title')}</span></div>${rows}<div class="upcoming-total">${t('upcoming_total')}: <b class="sensitive" id="upcoming-total">${fmtMoney(u.total)} ريال</b></div></div>`;
+}
+function hasAnyData(snapshot) {
+  const live = x => x && x.active !== false;
+  return snapshot.accounts.some(live) || snapshot.income.some(live) || snapshot.expenses.some(live) ||
+    snapshot.obligations.some(live) || snapshot.savingsGoals.some(live) || snapshot.recurringExpenses.some(live);
+}
+function applyOnboardingVisibility(snapshot) {
+  const empty = !hasAnyData(snapshot);
+  document.getElementById('onboarding-box').style.display = empty ? '' : 'none';
+  document.getElementById('month-status-block').style.display = empty ? 'none' : '';
+  document.getElementById('daily-available-widget').style.display = empty ? 'none' : '';
+  document.getElementById('upcoming-widget').style.display = empty ? 'none' : '';
+}
+let lastDashboardState = null;
 async function renderDashboard() {
-  const thisMonth = todayStr().slice(0,7);
-  const { totalIncome, totalExpense, totalObligationMonthly, available } = await computeCoreNumbers(thisMonth);
-  const totalSaving = (await db.savingsGoals.toArray()).filter(g=>g.active!==false).reduce((s,g)=>s+g.current_amount,0);
-
-  document.getElementById('hero-available').textContent = fmtMoney(available) + ' ريال';
-  document.getElementById('dash-saving').textContent = fmtMoney(totalSaving);
-  document.getElementById('dash-expense').textContent = fmtMoney(totalExpense);
-  document.getElementById('dash-obligation').textContent = fmtMoney(totalObligationMonthly);
-  document.getElementById('dash-income').textContent = fmtMoney(totalIncome);
-
-  const badgeEl = document.getElementById('hero-badge');
-  const ratio = totalIncome>0 ? available/totalIncome : 0;
-  if (available < 0) badgeEl.textContent = '⚠️ تجاوزت المتاح هذا الشهر';
-  else if (ratio >= 0.3) badgeEl.textContent = '✅ ممتاز، وضع مالي مستقر';
-  else if (ratio >= 0.1) badgeEl.textContent = '👍 جيد، استمر بالتحكم';
-  else badgeEl.textContent = 'ℹ️ المتاح محدود هذا الشهر';
-
-  const monthEndNet = await computeMonthEndNet(thisMonth);
-  document.getElementById('hero-projected').innerHTML = 'الرصيد الصافي بعد كل التزامات ومصروفات وادخار الشهر: <b>' + fmtMoney(monthEndNet) + ' ريال</b>';
-
-  const spentSoFar = Math.max(0, totalIncome - available);
-  const pct = totalIncome>0 ? Math.min(100,(spentSoFar/totalIncome)*100) : 0;
-  document.getElementById('salary-progress-fill').style.width = pct + '%';
-  document.getElementById('salary-progress-text').textContent = fmtMoney(available) + ' ريال متبقي';
-  document.getElementById('salary-progress-total').textContent = 'من ' + fmtMoney(totalIncome) + ' ريال';
-  document.getElementById('salary-progress-pct').textContent = '📅 ' + Math.round(pct) + '%';
-
-  await renderDailyAvailableWidget(available);
+  const snapshot = await loadSnapshot();
+  const state = financialEngine.buildState(snapshot); // حساب واحد يُمرَّر لكل الـWidgets (dashboardState)
+  lastDashboardState = state;
+  renderHero(state);
+  renderMonthStatus(snapshot, state);
+  renderDailyCard(state);
+  renderUpcomingCard(state);
+  applyOnboardingVisibility(snapshot);
 }
-async function renderNextDueWidget() {
-  const today = todayStr();
-  const allInst = await db.installments.toArray();
-  const upcoming = allInst.filter(i => (i.status==='due'||i.status==='late') && i.due_date >= today).sort((a,b)=>a.due_date.localeCompare(b.due_date));
-  const widget = document.getElementById('next-due-widget');
-  if (upcoming.length === 0) { widget.innerHTML = ''; return; }
-  const next = upcoming[0];
-  const ob = await db.obligations.get(next.obligation_id);
-  widget.innerHTML = `<div class="next-due-card"><span class="badge">📅 استحقاق ${next.due_date}</span><div class="title">${ob?ob.name:'التزام'}</div><div class="amt">${fmtMoney(next.amount)} ريال</div></div>`;
+
+/* ===== الحسابات والرصيد (Sprint 1) ===== */
+function showFormError(id, key) { const el = document.getElementById(id); el.textContent = key ? t(key) : ''; }
+function openBalanceSetup() { showFormError('setup-balance-error', ''); openModal('modal-setup-balance'); setTimeout(() => document.getElementById('setup-balance-amount').focus(), 350); }
+async function maybeShowBalanceSetup() {
+  const live = (await db.accounts.toArray()).filter(a => a.active !== false);
+  if (live.length === 0 && localStorage.getItem('iltizamati-balance-setup-skipped') !== '1') openBalanceSetup();
 }
-async function renderDailyAvailableWidget(available) {
-  const incomes = (await db.income.toArray()).filter(i=>i.active!==false && i.pay_date);
-  const today = new Date(); const todayDay = today.getDate();
-  let daysLeft = 30;
-  if (incomes.length > 0) { const payDay = incomes[0].pay_date; daysLeft = payDay > todayDay ? (payDay-todayDay) : (30-todayDay+payDay); }
-  daysLeft = Math.max(1, daysLeft);
-  const daily = available > 0 ? available / daysLeft : 0;
-  document.getElementById('daily-available-widget').innerHTML = `<div class="daily-card"><div class="cap">المتاح يومياً حتى الراتب القادم (${daysLeft} يوم)</div><div class="amt">${fmtMoney(daily)} ريال / يوم</div></div>`;
+async function renderAccountsView() {
+  const accounts = (await db.accounts.toArray()).filter(a => a.active !== false).sort((a, b) => a.id - b.id);
+  const bal = financialEngine.getCurrentBalance({ accounts });
+  document.getElementById('accounts-total').textContent = bal.hasData ? fmtMoney(bal.total) + ' ريال' : t('accounts_total_empty');
+  const list = document.getElementById('accounts-list');
+  list.innerHTML = '';
+  if (accounts.length === 0) {
+    list.innerHTML = `<div class="empty-hint">${t('accounts_empty')}</div><button type="button" class="btn btn-primary" id="accounts-empty-cta" style="width:100%">${t('account_add')}</button>`;
+    document.getElementById('accounts-empty-cta').onclick = () => document.getElementById('account-name').focus();
+    return;
+  }
+  accounts.forEach(acc => {
+    const type = acc.type || 'other';
+    const card = document.createElement('div'); card.className = 'card card-row account-row'; card.dataset.accountId = acc.id;
+    card.innerHTML = `<span class="cat-icon" style="background:var(--surface2)">${ACCOUNT_TYPE_ICONS[type] || '🔹'}</span>
+      <div style="flex:1"><div class="card-title">${esc(acc.name)}</div><div class="card-sub">${ACCOUNT_TYPE_LABELS[type] || 'أخرى'} · <b class="sensitive">${fmtMoney(acc.balance)} ريال</b></div></div>`;
+    const wrap = document.createElement('div'); wrap.style.cssText = 'display:flex;gap:6px;flex-shrink:0';
+    const editBtn = document.createElement('button'); editBtn.type = 'button'; editBtn.textContent = 'تعديل'; editBtn.className = 'pay-btn no-print account-edit-btn';
+    editBtn.onclick = () => {
+      document.getElementById('account-edit-id').value = acc.id;
+      document.getElementById('account-name').value = acc.name;
+      document.getElementById('account-type').value = type;
+      document.getElementById('account-balance').value = acc.balance;
+      document.getElementById('account-submit-btn').textContent = t('account_save');
+      document.getElementById('account-cancel-edit').style.display = '';
+      document.getElementById('account-name').scrollIntoView({ behavior: 'smooth', block: 'center' });
+    };
+    const archBtn = document.createElement('button'); archBtn.type = 'button'; archBtn.textContent = 'أرشفة'; archBtn.className = 'delete-btn no-print account-archive-btn';
+    archBtn.onclick = async () => {
+      if (!confirm(t('confirm_archive_account', { name: acc.name }))) return;
+      await db.accounts.update(acc.id, { active: false, archived_at: new Date().toISOString(), updated_at: new Date().toISOString() });
+      resetAccountForm(); showToast(t('toast_account_archived'));
+      await renderAccountsView(); await renderDashboard();
+    };
+    wrap.appendChild(editBtn); wrap.appendChild(archBtn); card.appendChild(wrap); list.appendChild(card);
+  });
 }
+function resetAccountForm() {
+  document.getElementById('account-form').reset();
+  document.getElementById('account-edit-id').value = '';
+  document.getElementById('account-submit-btn').textContent = t('account_add');
+  document.getElementById('account-cancel-edit').style.display = 'none';
+  showFormError('account-error', '');
+}
+document.getElementById('account-cancel-edit').addEventListener('click', resetAccountForm);
+document.getElementById('account-form').addEventListener('submit', async e => {
+  e.preventDefault();
+  const name = document.getElementById('account-name').value.trim();
+  const type = document.getElementById('account-type').value;
+  const amt = parseAmount(document.getElementById('account-balance').value);
+  if (!name) return showFormError('account-error', 'err_name_required');
+  if (!amt.ok) return showFormError('account-error', amt.error);
+  const now = new Date().toISOString(); const editId = document.getElementById('account-edit-id').value;
+  if (editId) { await db.accounts.update(parseInt(editId), { name, type, balance: amt.value, updated_at: now }); showToast(t('toast_account_updated')); }
+  else { await db.accounts.add({ name, type, balance: amt.value, currency: 'SAR', active: true, created_at: now, updated_at: now }); showToast(t('toast_account_added')); }
+  resetAccountForm();
+  await renderAccountsView(); await renderDashboard();
+});
+// اختيار نوع الحساب في نافذة "كم لديك حاليًا؟"
+document.querySelectorAll('#setup-balance-type-grid .pill-btn').forEach(btn => {
+  btn.onclick = () => {
+    document.querySelectorAll('#setup-balance-type-grid .pill-btn').forEach(b => b.classList.remove('selected'));
+    btn.classList.add('selected'); document.getElementById('setup-balance-type').value = btn.dataset.val;
+  };
+});
+document.getElementById('setup-balance-form').addEventListener('submit', async e => {
+  e.preventDefault();
+  const amt = parseAmount(document.getElementById('setup-balance-amount').value);
+  if (!amt.ok) return showFormError('setup-balance-error', amt.error);
+  const type = document.getElementById('setup-balance-type').value;
+  const name = document.getElementById('setup-balance-name').value.trim() || t(type === 'cash' ? 'default_account_cash' : 'default_account_bank');
+  const now = new Date().toISOString();
+  await db.accounts.add({ name, type, balance: amt.value, currency: 'SAR', active: true, created_at: now, updated_at: now });
+  e.target.reset(); document.getElementById('setup-balance-type').value = 'bank';
+  document.querySelectorAll('#setup-balance-type-grid .pill-btn').forEach((b, i) => b.classList.toggle('selected', i === 0));
+  closeAllModals(); showToast(t('toast_balance_saved'));
+  await renderAccountsView(); await renderDashboard();
+});
+document.getElementById('setup-balance-skip').addEventListener('click', () => {
+  localStorage.setItem('iltizamati-balance-setup-skipped', '1'); closeAllModals();
+});
+document.getElementById('close-modal-setup').addEventListener('click', closeAllModals);
+document.getElementById('onb-income').addEventListener('click', () => openModal('modal-add-income'));
+document.getElementById('onb-obligation').addEventListener('click', () => openModal('modal-add-obligation'));
+document.getElementById('onb-expense').addEventListener('click', () => openModal('modal-add-expense'));
 
 /* ===== التقويم المالي ===== */
 let calViewDate = new Date();
-function ymd(d) { return d.toISOString().split('T')[0]; }
 async function collectEventsForDate(dateStr) {
   const insts = (await db.installments.where('due_date').equals(dateStr).toArray()).filter(i=>i.status!=='cancelled');
   const events = [];
@@ -1614,7 +2240,7 @@ async function renderCalendar() {
   const monthNames = ['يناير','فبراير','مارس','أبريل','مايو','يونيو','يوليو','أغسطس','سبتمبر','أكتوبر','نوفمبر','ديسمبر'];
   document.getElementById('cal-month-label').textContent = monthNames[month] + ' ' + year;
   const firstDay = new Date(year, month, 1); const startOffset = firstDay.getDay();
-  const daysInMonth = new Date(year, month+1, 0).getDate(); const todayS = ymd(new Date());
+  const daysInMonth = new Date(year, month+1, 0).getDate(); const todayS = formatLocalDate(new Date());
   const allInst = (await db.installments.toArray()).filter(i=>i.status!=='cancelled');
   const allRec = (await db.recurringExpenses.toArray()).filter(r=>r.active!==false);
   const eventDates = new Set([...allInst.map(i=>i.due_date), ...allRec.map(r=>r.due_date)]);
@@ -1647,108 +2273,83 @@ document.getElementById('cal-next').addEventListener('click', () => { calViewDat
 
 /* ===== التقارير ===== */
 async function renderReports() {
-  const now = new Date(); const thisMonth = now.toISOString().slice(0,7);
-  const lastMonthDate = new Date(now.getFullYear(), now.getMonth()-1, 1); const lastMonth = lastMonthDate.toISOString().slice(0,7);
-  const cur = await computeCoreNumbers(thisMonth);
-  const prev = await computeCoreNumbers(lastMonth);
-  const totalSaving = (await db.savingsGoals.toArray()).filter(g=>g.active!==false).reduce((s,g)=>s+g.current_amount,0);
-
-  document.getElementById('report-summary').innerHTML = `
-    <div class="report-row"><span class="lbl">إجمالي الدخل</span><span class="val" style="color:var(--income)">${fmtMoney(cur.totalIncome)} ريال</span></div>
-    <div class="report-row"><span class="lbl">إجمالي المصروفات</span><span class="val" style="color:var(--expense)">${fmtMoney(cur.totalExpense)} ريال</span></div>
-    <div class="report-row"><span class="lbl">إجمالي الالتزامات</span><span class="val" style="color:var(--obligation)">${fmtMoney(cur.totalObligationMonthly)} ريال</span></div>
-    <div class="report-row"><span class="lbl">إجمالي الادخار (تراكمي)</span><span class="val">${fmtMoney(totalSaving)} ريال</span></div>
-    <div class="report-row"><span class="lbl">المتبقي</span><span class="val" style="color:var(--available)">${fmtMoney(cur.available)} ريال</span></div>
-  `;
+  const s = await loadSnapshot(); const E = financialEngine, D = dateUtils;
+  const thisMonth = D.monthOf(s.today), lastMonth = D.addMonthsToMonth(thisMonth, -1);
+  const cur = E.getMonthActuals(s, thisMonth), prev = E.getMonthActuals(s, lastMonth);
+  const registered = E.getExpectedIncome(s, D.monthStart(thisMonth), D.monthEnd(thisMonth));
+  const sp = E.getSpendableAmount(s);
+  const row = (label, valueHtml) => `<div class="report-row"><span class="lbl">${label}</span><span class="val">${valueHtml}</span></div>`;
+  const money = (n, color) => `<span style="color:${color}">${fmtMoney(n)} ريال</span>`;
+  document.getElementById('report-summary').innerHTML =
+    row(t('report_income'), money(registered.total, 'var(--income)')) +
+    row(t('report_expenses'), money(cur.expenses.total, 'var(--expense)')) +
+    row(t('report_obligations'), money(cur.obligationPayments.total, 'var(--obligation)')) +
+    row(t('report_savings'), money(cur.savings.total, 'var(--text)')) +
+    row(t('report_balance'), sp.balance.hasData ? money(sp.balance.total, 'var(--text)') : t('not_entered')) +
+    row(t('report_reserved'), money(sp.reserved.total, 'var(--text)')) +
+    row(t('report_spendable'), sp.complete ? money(sp.spendable, 'var(--available)') : t('complete_balance_short'));
   const catData = await getMonthlyExpensesByCategory(thisMonth);
   buildDonut(document.getElementById('report-donut'), catData, 'هذا الشهر');
 
-  function compareLine(label, curVal, prevVal) {
+  function compareLine(label, curVal, prevVal, higherIsGood) {
     let pctText, pctClass;
     if (prevVal === 0) { pctText = curVal===0 ? '0%' : 'جديد'; pctClass = 'pct-na'; }
-    else { const diff = ((curVal-prevVal)/prevVal)*100; const up = diff>=0; pctText=(up?'+':'')+diff.toFixed(0)+'%'; pctClass = up?'pct-up':'pct-down'; }
+    else { const diff = ((curVal-prevVal)/prevVal)*100; const up = diff>=0; pctText=(up?'+':'')+diff.toFixed(0)+'%'; pctClass = (up !== !!higherIsGood) ? 'pct-up' : 'pct-down'; }
     const barPct = Math.min(100, prevVal>0 ? (curVal/Math.max(curVal,prevVal))*100 : (curVal>0?100:0));
     const barColor = pctClass==='pct-up' ? 'var(--expense)' : (pctClass==='pct-down' ? 'var(--income)' : 'var(--muted)');
     return `<div class="compare-row"><span style="min-width:70px">${label}</span><div class="compare-bar-track"><div class="compare-bar-fill" style="width:${barPct}%;background:${barColor}"></div></div><span class="compare-pct ${pctClass}">${pctText}</span></div>`;
   }
   document.getElementById('report-compare').innerHTML =
-    compareLine('المصروفات', cur.totalExpense, prev.totalExpense) +
-    compareLine('الالتزامات', cur.totalObligationMonthly, prev.totalObligationMonthly) +
-    `<div class="compare-row"><span style="min-width:70px">الادخار</span><div class="compare-bar-track"><div class="compare-bar-fill" style="width:0%"></div></div><span class="compare-pct pct-na">غير متاح بعد</span></div>`;
+    compareLine('المصروفات', cur.expenses.total, prev.expenses.total, false) +
+    compareLine('الالتزامات', cur.obligationPayments.total, prev.obligationPayments.total, false) +
+    compareLine('الادخار', cur.savings.total, prev.savings.total, true);
 }
 
-/* ===== الرؤية (توقع 60 شهر) ===== */
+/* ===== الرؤية (توقع 60 شهر) — من financialEngine.getMonthForecast ===== */
 const VISION_MONTHS = 60;
 async function renderVision() {
   const container = document.getElementById('vision-list');
   container.innerHTML = '<p class="empty-hint">جاري الحساب...</p>';
-
-  const totalIncome = (await db.income.toArray()).filter(i=>i.active!==false).reduce((s,i)=>s+i.amount,0);
-  const goals = (await db.savingsGoals.toArray()).filter(g=>g.active!==false);
-  const allInstallments = (await db.installments.toArray()).filter(i=>i.status!=='cancelled' && i.status!=='paid');
-  const obByMonth = {};
-  allInstallments.forEach(i => { const m=i.due_date.slice(0,7); obByMonth[m]=(obByMonth[m]||0)+i.amount; });
-  const recs = (await db.recurringExpenses.toArray()).filter(r=>r.active!==false);
+  const s = await loadSnapshot(); const E = financialEngine, D = dateUtils;
   const monthNames = ['يناير','فبراير','مارس','أبريل','مايو','يونيو','يوليو','أغسطس','سبتمبر','أكتوبر','نوفمبر','ديسمبر'];
-  const today = new Date();
-
+  const curMonth = D.monthOf(s.today);
   container.innerHTML = '';
-  for (let m=0; m<VISION_MONTHS; m++) {
-    const d = new Date(today.getFullYear(), today.getMonth()+m, 1);
-    const monthKey = d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');
-
-    let recTotal = 0;
-    recs.forEach(r => {
-      const stepMonths = FREQ_MONTHS[r.frequency] || 1;
-      const startD = new Date(r.due_date);
-      const monthsDiff = (d.getFullYear()-startD.getFullYear())*12 + (d.getMonth()-startD.getMonth());
-      if (monthsDiff >= 0 && monthsDiff % stepMonths === 0) recTotal += r.amount;
-    });
-
-    // كل هدف ادخار يتوقف عن "استهلاك" جزء من المتاح الشهري بمجرد اكتماله فعلياً،
-    // ورصيده المتوقع لا يتجاوز المبلغ المستهدف
-    let plannedSavingThisMonth = 0;
-    let projectedSavingBalance = 0;
-    goals.forEach(g => {
-      const remaining = Math.max(0, g.target_amount - g.current_amount);
-      const monthsToComplete = g.monthly_contribution > 0 ? Math.ceil(remaining / g.monthly_contribution) : Infinity;
-      if (m < monthsToComplete) plannedSavingThisMonth += g.monthly_contribution;
-      const projected = g.monthly_contribution > 0
-        ? Math.min(g.target_amount, g.current_amount + g.monthly_contribution * (m + 1))
-        : g.current_amount;
-      projectedSavingBalance += projected;
-    });
-
-    const obTotal = obByMonth[monthKey] || 0;
-    const net = totalIncome - obTotal - recTotal - plannedSavingThisMonth;
-    const netPct = totalIncome > 0 ? Math.max(0, Math.min(100, (net/totalIncome)*100)) : 0;
+  const unscheduled = E.getExpectedIncome(s, s.today, s.today).unschedulableCount;
+  const note = document.createElement('p'); note.className = 'card-sub'; note.id = 'vision-note';
+  note.textContent = t('vision_note') + (unscheduled > 0 ? ' ' + t('vision_unscheduled') : '');
+  container.appendChild(note);
+  for (let m = 0; m < VISION_MONTHS; m++) {
+    const monthKey = D.addMonthsToMonth(curMonth, m);
+    const f = E.getMonthForecast(s, monthKey);
+    const [y, mo] = monthKey.split('-').map(Number);
+    const income = f.expectedIncome.total, net = f.netAfterPlannedSavings;
+    const netPct = income > 0 ? Math.max(0, Math.min(100, (net / income) * 100)) : 0;
     const netColor = net >= 0 ? 'var(--income)' : 'var(--expense)';
-
-    const card = document.createElement('div'); card.className='card';
+    const card = document.createElement('div'); card.className = 'card'; card.dataset.month = monthKey;
     card.innerHTML = `
-      <div class="card-row"><span class="card-title">${monthNames[d.getMonth()]} ${d.getFullYear()}</span><span class="chip ${net>=0?'chip-paid':'chip-late'}">${net>=0?'✓ متوازن':'⚠️ عجز'}</span></div>
+      <div class="card-row"><span class="card-title">${monthNames[mo - 1]} ${y}${m === 0 ? ' <small class="card-sub">(' + t('vision_current_month') + ')</small>' : ''}</span><span class="chip ${net >= 0 ? 'chip-paid' : 'chip-late'}">${net >= 0 ? t('vision_surplus') : t('vision_deficit')}</span></div>
       <div class="stats-grid">
-        <span class="label">الدخل:</span><span class="value" style="color:var(--income)">${fmtMoney(totalIncome)} ريال</span>
-        <span class="label">الالتزامات:</span><span class="value" style="color:var(--obligation)">${fmtMoney(obTotal)} ريال</span>
-        <span class="label">مصروفات متكررة:</span><span class="value" style="color:var(--expense)">${fmtMoney(recTotal)} ريال</span>
-        <span class="label">رصيد الادخار المتوقع:</span><span class="value">${fmtMoney(projectedSavingBalance)} ريال</span>
+        <span class="label">الدخل المتوقع:</span><span class="value" style="color:var(--income)">${fmtMoney(income)} ريال</span>
+        <span class="label">الالتزامات:</span><span class="value" style="color:var(--obligation)">${fmtMoney(f.obligations.total)} ريال</span>
+        <span class="label">مصروفات متكررة:</span><span class="value" style="color:var(--expense)">${fmtMoney(f.recurring.total)} ريال</span>
+        <span class="label">رصيد الادخار المتوقع:</span><span class="value">${fmtMoney(f.projectedSavingsBalance)} ريال</span>
       </div>
       <div class="progress-track"><div class="progress-fill" style="width:${netPct}%;background:${netColor}"></div></div>
-      <div class="total-line" style="color:${netColor}">المتاح المتوقع: ${fmtMoney(net)} ريال</div>
+      <div class="total-line" style="color:${netColor}">الصافي المتوقع: ${fmtMoney(net)} ريال</div>
     `;
     container.appendChild(card);
   }
 }
 
 /* ===== النسخ الاحتياطي ===== */
-const BACKUP_TABLES = ['income','categories','expenses','recurringExpenses','obligations','installments','payments','savingsGoals','incomeLog','savingsLog'];
+const BACKUP_TABLES = ['income','categories','expenses','recurringExpenses','obligations','installments','payments','savingsGoals','incomeLog','savingsLog','accounts'];
 document.getElementById('backup-export-btn').addEventListener('click', async () => {
-  const data = { app:'التزاماتي', version:1, exportedAt:new Date().toISOString() };
-  for (const t of BACKUP_TABLES) data[t] = await db[t].toArray();
+  const data = { app:'التزاماتي', version:2, schemaVersion:SCHEMA_VERSION, exportedAt:new Date().toISOString() };
+  for (const tbl of BACKUP_TABLES) data[tbl] = await db[tbl].toArray();
   const blob = new Blob([JSON.stringify(data, null, 2)], { type:'application/json' });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
-  a.href = url; a.download = 'iltizamati-backup-' + todayStr() + '.json';
+  a.href = url; a.download = 'iltizamati-backup-' + todayLocal() + '.json';
   document.body.appendChild(a); a.click(); document.body.removeChild(a);
   URL.revokeObjectURL(url);
   showToast('تم تصدير النسخة الاحتياطية');
@@ -1764,9 +2365,10 @@ document.getElementById('backup-import-file').addEventListener('change', async (
     const text = await file.text();
     const data = JSON.parse(text);
     if (!data || typeof data !== 'object') throw new Error('bad format');
-    for (const t of BACKUP_TABLES) {
-      await db[t].clear();
-      if (Array.isArray(data[t]) && data[t].length) await db[t].bulkAdd(data[t]);
+    for (const tbl of BACKUP_TABLES) {
+      if (tbl === 'accounts' && !Array.isArray(data.accounts)) continue; // نسخة قديمة قبل الحسابات: لا نمسح حسابات المستخدم الحالية
+      await db[tbl].clear();
+      if (Array.isArray(data[tbl]) && data[tbl].length) await db[tbl].bulkAdd(data[tbl]);
     }
     showToast('تم استيراد النسخة الاحتياطية بنجاح');
     setTimeout(() => location.reload(), 800);
@@ -1776,45 +2378,38 @@ document.getElementById('backup-import-file').addEventListener('change', async (
   e.target.value = '';
 });
 
-/* ===== PDF Export ===== */
+/* ===== PDF Export — من financialEngine ===== */
 async function buildPrintReport() {
-  const today = todayStr(); const thisMonth = today.slice(0,7);
-  const { totalIncome, totalExpense, totalObligationMonthly, totalSavingThisMonth, available } = await computeCoreNumbers(thisMonth);
-  const now = new Date();
+  const s = await loadSnapshot(); const state = financialEngine.buildState(s);
+  const now = new Date(); const thisMonth = state.month;
+  const sp = state.spendable;
+  const cats = await db.categories.toArray(); const catMap = {}; cats.forEach(c => catMap[c.id] = c.name);
 
-  const obligations = (await db.obligations.toArray()).filter(o=>o.active!==false && o.status!=='closed');
-  let obRows = '';
-  for (const ob of obligations) {
-    const { installments, remaining } = await getObligationFinancials(ob);
-    const nextDue = installments.find(i=>i.status==='due'||i.status==='late');
-    obRows += `<tr><td>${ob.name}</td><td>${fmtMoney(remaining)} ريال</td><td>${fmtMoney(ob.installment_amount)} ريال</td><td>${nextDue?nextDue.due_date:'—'}</td></tr>`;
-  }
+  let obRows = state.debt.items.map(o => `<tr><td>${esc(o.name)}</td><td>${fmtMoney(o.remaining)} ريال</td><td>${fmtMoney(o.installmentAmount)} ريال</td><td>${o.nextDue || '—'}</td></tr>`).join('');
   if (!obRows) obRows = '<tr><td colspan="4">لا يوجد التزامات نشطة</td></tr>';
 
-  const cats = await db.categories.toArray(); const catMap = {}; cats.forEach(c=>catMap[c.id]=c.name);
-  const monthExpenses = (await db.expenses.toArray()).filter(e=>e.active!==false && e.date.startsWith(thisMonth) && e.date<=today).sort((a,b)=>b.date.localeCompare(a.date));
-  let expRows = monthExpenses.map(e => `<tr><td>${e.name}</td><td>${catMap[e.category_id]||'غير مصنّف'}</td><td>${e.date}</td><td>${fmtMoney(e.amount)} ريال</td></tr>`).join('');
+  const monthExpenses = state.actuals.expenses.items.slice().sort((a, b) => b.date.localeCompare(a.date));
+  let expRows = monthExpenses.map(e => `<tr><td>${esc(e.name)}</td><td>${esc(catMap[e.category_id] || 'غير مصنّف')}</td><td>${e.date}</td><td>${fmtMoney(e.amount)} ريال</td></tr>`).join('');
   if (!expRows) expRows = '<tr><td colspan="4">لا يوجد مصروفات مسجّلة هذا الشهر بعد</td></tr>';
 
-  const goals = (await db.savingsGoals.toArray()).filter(g=>g.active!==false);
-  let goalRows = goals.map(g => {
-    const pct = g.target_amount>0 ? Math.round((g.current_amount/g.target_amount)*100) : 0;
-    return `<tr><td>${g.name}</td><td>${fmtMoney(g.current_amount)} ريال</td><td>${fmtMoney(g.target_amount)} ريال</td><td>${pct}%</td></tr>`;
-  }).join('');
+  let goalRows = state.savings.goals.map(g => `<tr><td>${esc(g.name)}</td><td>${fmtMoney(g.current)} ريال</td><td>${fmtMoney(g.target)} ريال</td><td>${Math.round(g.pct)}%</td></tr>`).join('');
   if (!goalRows) goalRows = '<tr><td colspan="4">لا يوجد أهداف ادخار نشطة</td></tr>';
 
+  const balanceTxt = sp.balance.hasData ? fmtMoney(sp.balance.total) : t('not_entered');
+  const spendTxt = sp.complete ? fmtMoney(sp.spendable) : t('complete_balance_short');
   document.getElementById('print-report').innerHTML = `
-    <h1>تقرير التزاماتي</h1>
+    <h1>${t('pdf_title')}</h1>
     <div class="pr-date">تاريخ التصدير: ${now.toLocaleDateString('en-GB')} — ${now.toLocaleTimeString('en-GB')}</div>
     <div class="pr-summary">
-      <div><div class="lbl">الدخل</div><div class="val">${fmtMoney(totalIncome)}</div></div>
-      <div><div class="lbl">المصروفات (حتى الآن)</div><div class="val">${fmtMoney(totalExpense)}</div></div>
-      <div><div class="lbl">الالتزامات المستحقة</div><div class="val">${fmtMoney(totalObligationMonthly)}</div></div>
-      <div><div class="lbl">صافي المتاح</div><div class="val">${fmtMoney(available)}</div></div>
+      <div><div class="lbl">${t('pdf_balance')}</div><div class="val">${balanceTxt}</div></div>
+      <div><div class="lbl">${t('pdf_reserved')}</div><div class="val">${fmtMoney(sp.reserved.total)}</div></div>
+      <div><div class="lbl">${t('pdf_spendable')}</div><div class="val">${spendTxt}</div></div>
+      <div><div class="lbl">${t('pdf_expenses')}</div><div class="val">${fmtMoney(state.actuals.expenses.total)}</div></div>
     </div>
+    ${sp.complete && sp.shortfall > 0 ? `<p class="pr-date">${t('hero_shortfall')}: ${fmtMoney(sp.shortfall)} ريال</p>` : ''}
     <h2>الالتزامات النشطة</h2>
     <table><thead><tr><th>الاسم</th><th>المتبقي</th><th>القسط</th><th>القسط القادم</th></tr></thead><tbody>${obRows}</tbody></table>
-    <h2>مصروفات هذا الشهر (حتى الآن)</h2>
+    <h2>مصروفات هذا الشهر (فعلية حتى اليوم)</h2>
     <table><thead><tr><th>الاسم</th><th>التصنيف</th><th>التاريخ</th><th>المبلغ</th></tr></thead><tbody>${expRows}</tbody></table>
     <h2>أهداف الادخار</h2>
     <table><thead><tr><th>الاسم</th><th>الحالي</th><th>الهدف</th><th>النسبة</th></tr></thead><tbody>${goalRows}</tbody></table>
