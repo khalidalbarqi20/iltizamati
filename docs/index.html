@@ -330,7 +330,7 @@ input:checked + .toggle-slider::before { transform:translateX(-22px); }
     <button class="drawer-item" data-view="view-calendar"><span class="emoji">📅</span> التقويم المالي</button>
     <button class="drawer-item" data-view="view-reports"><span class="emoji">📊</span> التقارير</button>
     <button class="drawer-item" data-view="view-vision"><span class="emoji">🔮</span> الرؤية</button>
-    <button class="drawer-item" data-view="view-calculator"><span class="emoji">🧮</span> حاسبة التمويل</button>
+    <button class="drawer-item" data-view="view-calculator"><span class="emoji">🧮</span> حاسبة تمويل تقديرية</button>
     <button class="drawer-item" data-view="view-savings"><span class="emoji">🎯</span> الادخار</button>
     <button class="drawer-item" data-view="view-settings"><span class="emoji">⚙️</span> الإعدادات</button>
     <button class="drawer-item" id="suggest-btn"><span class="emoji">💡</span> اقترح</button>
@@ -577,11 +577,12 @@ input:checked + .toggle-slider::before { transform:translateX(-22px); }
 
   <!-- ============ حاسبة التمويل ============ -->
   <div class="view" id="view-calculator">
-    <h2>حاسبة التمويل</h2>
+    <h2>حاسبة تمويل تقديرية</h2>
+    <p class="card-sub">النتيجة تقديرية وقد تختلف عن العرض الفعلي للجهة الممولة.</p>
     <form id="calc-form" class="no-print">
       <input type="number" id="calc-amount" placeholder="مبلغ التمويل" required min="0" step="0.01">
       <input type="number" id="calc-months" placeholder="عدد الأشهر" required min="1" step="1">
-      <input type="number" id="calc-rate" placeholder="نسبة الفائدة السنوية % (مثال: 5)" required min="0" step="0.01">
+      <input type="number" id="calc-rate" placeholder="نسبة الفائدة السنوية التقريبية % (مثال: 5)" required min="0" step="0.01">
       <button type="submit" class="btn btn-recurring">احسب</button>
     </form>
     <div id="calc-result"></div>
@@ -639,8 +640,13 @@ input:checked + .toggle-slider::before { transform:translateX(-22px); }
     <button class="export-btn-settings" id="backup-import-btn">📥 استيراد نسخة احتياطية</button>
     <input type="file" id="backup-import-file" accept="application/json" style="display:none">
 
-    <h3 style="margin-top:24px">بيانات الاختبار</h3>
-    <button class="reset-btn-settings" id="reset-test-data">🗑️ مسح كل بيانات الاختبار</button>
+    <h3 style="margin-top:24px">بياناتي</h3>
+    <p class="card-sub">كل بياناتك محفوظة على جهازك فقط. يُنصح بتصدير نسخة احتياطية قبل الحذف.</p>
+    <button class="reset-btn-settings" id="delete-all-data">🗑️ حذف كل بياناتي من هذا الجهاز</button>
+    <div id="dev-tools" hidden>
+      <h3 style="margin-top:24px">أدوات المطوّر (DEV)</h3>
+      <button class="reset-btn-settings" id="reset-test-data">🧪 مسح بيانات الاختبار</button>
+    </div>
   </div>
 
 </div>
@@ -1053,8 +1059,14 @@ db.version(6).stores({
 db.version(7).stores({
   accounts: '++id, name, type, active'
 });
+// v8 (Phase A): مفتاح فريد لكل استحقاق متكرر يمنع التكرار. السجلات القديمة بلا مفتاح لا تتأثر.
+db.version(8).stores({
+  expenses: '++id, category_id, amount, name, date, note, active, recurring_expense_id, &recurring_occurrence_key'
+});
+// وضع التطوير: فقط بإضافة ?dev=1 للرابط. لا نعتمد على localhost لأن تطبيق Capacitor يعمل عليه أيضاً.
+const DEV_MODE = new URLSearchParams(location.search).get('dev') === '1';
 const DB_NAME = 'TiltizamatiFreshDB';
-const SCHEMA_VERSION = 7; // رقم إصدار المخطط (Dexie يخزنه ×10 داخل IndexedDB)
+const SCHEMA_VERSION = 8; // رقم إصدار المخطط (Dexie يخزنه ×10 داخل IndexedDB)
 
 /* ===== نسخة أمان تلقائية قبل أي ترقية للمخطط (البند 63) — IndexedDB خام مستقل عن Dexie ===== */
 function idbRequest(req) { return new Promise((res, rej) => { req.onsuccess = () => res(req.result); req.onerror = () => rej(req.error); }); }
@@ -1142,7 +1154,7 @@ function toggleCollapsible(box, toggleBtn) {
 function showView(viewId) {
   document.querySelectorAll('.view').forEach(v => v.classList.toggle('active', v.id === viewId));
   document.querySelectorAll('.nav-item').forEach(btn => btn.classList.toggle('active', btn.dataset.view === viewId));
-  const titles = { 'view-home':'التزاماتي','view-income':'الدخل','view-expenses':'المصروفات','view-obligations':'الالتزامات المالية','view-calculator':'حاسبة التمويل','view-savings':'الادخار','view-settings':'الإعدادات','view-calendar':'التقويم المالي','view-reports':'التقارير','view-vision':'الرؤية','view-accounts':'الحسابات' };
+  const titles = { 'view-home':'التزاماتي','view-income':'الدخل','view-expenses':'المصروفات','view-obligations':'الالتزامات المالية','view-calculator':'حاسبة تمويل تقديرية','view-savings':'الادخار','view-settings':'الإعدادات','view-calendar':'التقويم المالي','view-reports':'التقارير','view-vision':'الرؤية','view-accounts':'الحسابات' };
   document.getElementById('page-title').textContent = titles[viewId] || 'التزاماتي';
   const subtitleEl = document.querySelector('.top-subtitle');
   if (subtitleEl) subtitleEl.style.display = (viewId === 'view-home') ? '' : 'none';
@@ -1226,14 +1238,18 @@ document.getElementById('hero-eye-toggle').addEventListener('click', function(){
 });
 
 /* ===== Reset & seed ===== */
-document.getElementById('reset-test-data').addEventListener('click', async () => {
-  if (!confirm('سيتم مسح كل البيانات نهائياً. متأكد؟')) return;
+if (DEV_MODE) document.getElementById('dev-tools').hidden = false;
+async function wipeAllUserData() {
+  if (!confirm('سيتم مسح كل بياناتك من هذا الجهاز نهائياً. متأكد؟')) return;
+  if (!confirm('تأكيد أخير: لا يمكن التراجع عن الحذف إلا من نسخة احتياطية سبق تصديرها. المتابعة؟')) return;
   await db.income.clear(); await db.expenses.clear(); await db.recurringExpenses.clear();
   await db.obligations.clear(); await db.installments.clear(); await db.payments.clear();
   await db.savingsGoals.clear(); await db.incomeLog.clear(); await db.savingsLog.clear(); await db.accounts.clear();
   localStorage.removeItem('iltizamati-balance-setup-skipped');
   location.reload();
-});
+}
+document.getElementById('reset-test-data').addEventListener('click', wipeAllUserData);
+document.getElementById('delete-all-data').addEventListener('click', wipeAllUserData);
 async function seedDefaultCategories() {
   const count = await db.categories.count();
   if (count > 0) return;
@@ -1256,7 +1272,7 @@ async function populateCategoryGrid(cats) {
     const meta = catMeta(cat.name);
     const btn = document.createElement('button');
     btn.type = 'button'; btn.className = 'cat-pick';
-    btn.innerHTML = `<span class="circle" style="background:${meta.color}22;color:${meta.color}">${meta.icon}</span><span class="lbl">${cat.name}</span>`;
+    btn.innerHTML = `<span class="circle" style="background:${meta.color}22;color:${meta.color}">${meta.icon}</span><span class="lbl">${esc(cat.name)}</span>`;
     btn.onclick = () => {
       grid.querySelectorAll('.cat-pick').forEach(b => b.classList.remove('selected'));
       btn.classList.add('selected');
@@ -1351,7 +1367,7 @@ async function renderIncomeList() {
   const items = (await db.income.toArray()).filter(i => i.active !== false);
   renderListInto('income-list', items, item => {
     const card = document.createElement('div'); card.className = 'card card-row';
-    card.innerHTML = `<div><div class="card-title">${item.source_name}</div><div class="card-sub">${fmtMoney(item.amount)} ريال</div></div>`;
+    card.innerHTML = `<div><div class="card-title">${esc(item.source_name)}</div><div class="card-sub">${fmtMoney(item.amount)} ريال</div></div>`;
     const btn = document.createElement('button'); btn.textContent='حذف'; btn.className='delete-btn';
     btn.onclick = async () => { await db.income.update(item.id,{active:false}); await logIncomeSnapshot(); renderIncomeList(); renderDashboard(); renderIncomeHistory(); };
     card.appendChild(btn); return card;
@@ -1405,7 +1421,7 @@ async function renderExpenseList() {
     const recTag = item.recurring_expense_id ? ' · متكرر' : '';
     const card = document.createElement('div'); card.className='card card-row';
     card.innerHTML = `<span class="cat-icon" style="background:${meta.color}22;color:${meta.color}">${meta.icon}</span>
-      <div style="flex:1"><div class="card-title">${item.name} — ${fmtMoney(item.amount)} ريال</div><div class="card-sub">${catName} · ${item.date}${recTag}</div></div>`;
+      <div style="flex:1"><div class="card-title">${esc(item.name)} — ${fmtMoney(item.amount)} ريال</div><div class="card-sub">${esc(catName)} · ${item.date}${recTag}</div></div>`;
     const btn = document.createElement('button'); btn.textContent='حذف'; btn.className='delete-btn';
     btn.onclick = async () => { await db.expenses.update(item.id,{active:false}); renderExpenseList(); renderDashboard(); };
     card.appendChild(btn); return card;
@@ -1423,7 +1439,7 @@ async function renderHomeExpenses() {
     const catName = catMap[item.category_id]||'غير مصنّف'; const meta = catMeta(catName);
     const card = document.createElement('div'); card.className='card card-row';
     card.innerHTML = `<span class="cat-icon" style="background:${meta.color}22;color:${meta.color}">${meta.icon}</span>
-      <div style="flex:1"><div class="card-title">${item.name} — ${fmtMoney(item.amount)} ريال</div><div class="card-sub">${catName} · ${item.date}</div></div>`;
+      <div style="flex:1"><div class="card-title">${esc(item.name)} — ${fmtMoney(item.amount)} ريال</div><div class="card-sub">${esc(catName)} · ${item.date}</div></div>`;
     const btn = document.createElement('button'); btn.textContent='حذف'; btn.className='delete-btn no-print';
     btn.onclick = async () => { await db.expenses.update(item.id,{active:false}); await renderExpenseList(); await renderDashboard(); };
     card.appendChild(btn); return card;
@@ -1456,7 +1472,7 @@ function buildDonut(containerEl, dataArr, totalLabel) {
   [...dataArr].sort((a,b)=>b.amount-a.amount).forEach(d => {
     const pct = ((d.amount/total)*100).toFixed(0);
     const row = document.createElement('div'); row.className='legend-row';
-    row.innerHTML = `<span class="legend-dot" style="background:${d.color}"></span><span>${d.icon} ${d.name}</span><span class="pct">${pct}%</span>`;
+    row.innerHTML = `<span class="legend-dot" style="background:${d.color}"></span><span>${d.icon} ${esc(d.name)}</span><span class="pct">${pct}%</span>`;
     legend.appendChild(row);
   });
   containerEl.appendChild(legend);
@@ -1503,11 +1519,11 @@ async function renderSalaryAllocation() {
     const obligations = (await db.obligations.toArray()).filter(o=>o.active!==false && o.status!=='closed');
     let html = '<h3>الالتزامات النشطة</h3>';
     if (obligations.length===0) html += '<p class="empty-hint">لا يوجد التزامات</p>';
-    obligations.forEach(ob => { html += `<div class="card card-row"><span class="card-title">${ob.name}</span><span class="card-sub">${fmtMoney(ob.installment_amount)} ريال / شهرياً</span></div>`; });
+    obligations.forEach(ob => { html += `<div class="card card-row"><span class="card-title">${esc(ob.name)}</span><span class="card-sub">${fmtMoney(ob.installment_amount)} ريال / شهرياً</span></div>`; });
     const expenses = (await db.expenses.toArray()).filter(e=>e.active!==false && e.date.startsWith(thisMonth));
     html += '<h3>مصروفات هذا الشهر</h3>';
     if (expenses.length===0) html += '<p class="empty-hint">لا يوجد مصروفات</p>';
-    expenses.forEach(e => { html += `<div class="card card-row"><span class="card-title">${e.name}</span><span class="card-sub">${fmtMoney(e.amount)} ريال</span></div>`; });
+    expenses.forEach(e => { html += `<div class="card card-row"><span class="card-title">${esc(e.name)}</span><span class="card-sub">${fmtMoney(e.amount)} ريال</span></div>`; });
     detailsBox.innerHTML = html;
     detailsBox.classList.add('open');
     detailsBox.style.maxHeight = detailsBox.scrollHeight + 'px';
@@ -1518,15 +1534,20 @@ async function renderSalaryAllocation() {
 /* ===== المصروفات المتكررة ===== */
 async function generateDueRecurringExpenses() {
   const today = todayLocal();
-  const recs = (await db.recurringExpenses.toArray()).filter(r=>r.active!==false);
-  for (const rec of recs) {
-    let dueDate = rec.due_date; const monthsStep = FREQ_MONTHS[rec.frequency]||1; let safety=0;
-    while (dueDate <= today && safety < 60) {
-      await db.expenses.add({ category_id:rec.category_id, amount:rec.amount, name:rec.name, date:dueDate, note:'مصروف متكرر تلقائي', active:true, recurring_expense_id:rec.id });
-      dueDate = addMonthsLocal(dueDate, monthsStep); safety++;
+  // كل المعالجة داخل transaction واحدة + مفتاح فريد لكل استحقاق: فتح التطبيق مرات/تبويبات لا يكرر المصروف
+  await db.transaction('rw', db.expenses, db.recurringExpenses, async () => {
+    const recs = (await db.recurringExpenses.toArray()).filter(r=>r.active!==false);
+    for (const rec of recs) {
+      let dueDate = rec.due_date; const monthsStep = FREQ_MONTHS[rec.frequency]||1; let safety=0;
+      while (dueDate <= today && safety < 60) {
+        const key = 'rec-' + rec.id + '-' + dueDate;
+        const exists = await db.expenses.where('recurring_occurrence_key').equals(key).count();
+        if (!exists) await db.expenses.add({ category_id:rec.category_id, amount:rec.amount, name:rec.name, date:dueDate, note:'مصروف متكرر تلقائي', active:true, recurring_expense_id:rec.id, recurring_occurrence_key:key });
+        dueDate = addMonthsLocal(dueDate, monthsStep); safety++;
+      }
+      if (dueDate !== rec.due_date) await db.recurringExpenses.update(rec.id,{due_date:dueDate});
     }
-    if (dueDate !== rec.due_date) await db.recurringExpenses.update(rec.id,{due_date:dueDate});
-  }
+  });
 }
 async function renderRecurringList() {
   const items = (await db.recurringExpenses.toArray()).filter(r=>r.active!==false);
@@ -1536,7 +1557,7 @@ async function renderRecurringList() {
     const catName = catMap[item.category_id]||'غير مصنّف'; const meta = catMeta(catName);
     const card = document.createElement('div'); card.className='card card-row';
     card.innerHTML = `<span class="cat-icon" style="background:${meta.color}22;color:${meta.color}">${meta.icon}</span>
-      <div style="flex:1"><div class="card-title">${item.name} — ${fmtMoney(item.amount)} ريال</div><div class="card-sub">${catName} · ${freqLabels[item.frequency]} · القادم: ${item.due_date}</div></div>`;
+      <div style="flex:1"><div class="card-title">${esc(item.name)} — ${fmtMoney(item.amount)} ريال</div><div class="card-sub">${esc(catName)} · ${freqLabels[item.frequency]} · القادم: ${item.due_date}</div></div>`;
     const btnWrap = document.createElement('div'); btnWrap.style.cssText='display:flex;gap:6px;flex-shrink:0';
     const editBtn = document.createElement('button'); editBtn.textContent='تعديل'; editBtn.className='pay-btn no-print';
     editBtn.onclick = () => openEditRecurring(item);
@@ -1696,12 +1717,15 @@ async function reconcileObligationAfterEdit(ob) {
   for (const inst of toCancel) await db.installments.update(inst.id,{status:'cancelled'});
 }
 async function applyFullPayoff(ob, payoffAmount, fee) {
+  // قاعدة إلزامية: لا إغلاق إلا إذا غطّى مبلغ السداد المتبقي بالكامل (الرسوم تكلفة إضافية ولا تُحتسب من الأصل)
+  const fin = await getObligationFinancials(ob);
+  if (!(payoffAmount >= fin.remaining)) { showToast('المبلغ غير كافٍ لإغلاق الالتزام.'); return false; }
   const today = todayLocal();
   await db.payments.add({ installment_id:null, obligation_id:ob.id, amount_paid:payoffAmount+fee, paid_date:today, payment_type:'payoff' });
   const { installments } = await getObligationFinancials(ob);
   for (const inst of installments) if (inst.status!=='paid') await db.installments.update(inst.id,{status:'cancelled'});
   await db.obligations.update(ob.id,{status:'closed', closed_date:today});
-  await renderObligationList(); await renderDashboard(); showToast('تم إغلاق الالتزام');
+  await renderObligationList(); await renderDashboard(); showToast('تم إغلاق الالتزام'); return true;
 }
 async function renderHomeObligations() {
   const obligations = (await db.obligations.toArray()).filter(o=>o.active!==false && o.status!=='closed');
@@ -1717,7 +1741,7 @@ async function renderHomeObligations() {
     const card = document.createElement('div'); card.className='card'; card.style.cursor='pointer';
     card.style.borderInlineStart = `4px solid ${tColor}`;
     card.innerHTML = `
-      <div class="card-row"><span class="card-title">${ob.name}</span><span class="chip chip-due">${paidCount}/${total}</span></div>
+      <div class="card-row"><span class="card-title">${esc(ob.name)}</span><span class="chip chip-due">${paidCount}/${total}</span></div>
       <div class="card-sub">المتبقي: ${fmtMoney(remaining)} ريال ${nextDue?'· القادم: '+nextDue.due_date:''}</div>
       <div class="progress-track"><div class="progress-fill" style="width:${pct}%;background:${tColor}"></div></div>`;
     card.onclick = () => {
@@ -1756,7 +1780,7 @@ async function renderObligationList() {
     const freqLabel = OB_FREQ_LABELS[ob.frequency] || OB_FREQ_LABELS.monthly;
     card.innerHTML = `
       <div class="card-row" style="align-items:center">
-        <h3 style="color:var(--text);font-size:1rem;margin:0;flex:1">${ob.name} <span class="card-sub">(${typeLabel}${ob.provider?' — '+ob.provider:''} · ${freqLabel})</span></h3>
+        <h3 style="color:var(--text);font-size:1rem;margin:0;flex:1">${esc(ob.name)} <span class="card-sub">(${typeLabel}${ob.provider?' — '+esc(ob.provider):''} · ${freqLabel})</span></h3>
         <div style="display:flex;gap:6px;flex-shrink:0;align-items:center">
           <button class="pay-btn no-print ob-edit-btn" style="background:#546e7a">تعديل</button>
           <button class="delete-btn no-print ob-delete-btn">حذف</button>
@@ -1838,11 +1862,14 @@ async function renderObligationList() {
     card.querySelector('.btn-payoff').onclick = async () => {
       const payoffInput = card.querySelector('.payoff-amount'); const feeInput = card.querySelector('.payoff-fee'); const resultBox = card.querySelector('.payoff-result-box');
       const payoffAmount = parseFloat(payoffInput.value)||remaining; const fee = parseFloat(feeInput.value)||0;
+      if (payoffAmount < remaining) {
+        resultBox.innerHTML = `<div class="payoff-result payoff-cost" role="alert">المبلغ غير كافٍ لإغلاق الالتزام. المتبقي: ${fmtMoney(remaining)} ريال.</div>`;
+        return;
+      }
       const costIfContinue = remainingWholeInstallments * ob.installment_amount; const diff = costIfContinue - (payoffAmount+fee);
       let cls='payoff-neutral', text='';
-      if (diff>0) { cls='payoff-save'; text='توفر '+fmtMoney(diff)+' ريال بالسداد المبكر ✓'; }
-      else if (diff<0) { cls='payoff-cost'; text='السداد المبكر يكلفك '+fmtMoney(Math.abs(diff))+' ريال أكثر'; }
-      else { text='لا فرق مادي — لكن تتخلص من الالتزام فوراً'; }
+      // وصف حسابي محايد بدون حكم «أفضل/أسوأ»
+      text = 'الفرق الحسابي: ' + (diff>0?'+':diff<0?'−':'') + fmtMoney(Math.abs(diff)) + ' ريال (المتبقي إذا استمريت ' + fmtMoney(costIfContinue) + ' مقابل السداد المبكر مع الرسوم ' + fmtMoney(payoffAmount+fee) + ')';
       resultBox.innerHTML = `<div class="payoff-result ${cls}">${text}<br><button class="btn-payoff confirm-payoff" style="margin-top:8px;width:100%">تأكيد السداد الكامل وإغلاق الالتزام</button></div>`;
       resultBox.querySelector('.confirm-payoff').onclick = async () => { if(!confirm('سيتم إغلاق الالتزام نهائياً. متأكد؟'))return; await applyFullPayoff(ob,payoffAmount,fee); };
     };
@@ -1872,12 +1899,12 @@ document.getElementById('calc-form').addEventListener('submit', e => {
 
 /* ===== أفكار الادخار ===== */
 const SAVING_SUGGESTIONS = [
-  { icon:'🪙', title:'شراء جرام ذهب شهرياً', body:'خصص مبلغ ثابت كل شهر لشراء ذهب عيار 24 أو 21. يحميك من التضخم على المدى الطويل. راقب السعر وتجنب الشراء وقت القمم.' },
-  { icon:'📈', title:'صندوق استثماري / محفظة أسهم', body:'استثمار شهري ثابت في صندوق مؤشر أو محفظة متنوعة يقلل المخاطرة على المدى الطويل. يحتاج أفق 3 سنوات فأكثر، ومناسب بعد جهوزية صندوق الطوارئ.' },
-  { icon:'🏦', title:'صندوق الطوارئ أولاً', body:'قبل أي استثمار، جمّع 3-6 أشهر من مصاريفك الأساسية في حساب سهل السحب. يحميك من الاقتراض وقت الظروف الطارئة.' },
-  { icon:'🏠', title:'شراء عقار أو أرض', body:'ادخار طويل المدى نحو دفعة أولى لعقار أو أرض. استخدم قسم أهداف الادخار لحساب المدة المطلوبة فعلياً حسب مقدرتك الشهرية.' },
-  { icon:'📜', title:'شهادات الادخار البنكية', body:'بعض البنوك تقدم شهادات أو ودائع بعائد ثابت لمدة محددة. أقل مرونة لكنها توفر عائد مضمون تقريباً.' },
-  { icon:'🎯', title:'قاعدة 50/30/20 كبداية', body:'50% للأساسيات، 30% للرغبات، 20% للادخار والسداد الإضافي. عدّلها حسب وضعك، لكنها نقطة بداية جيدة.' }
+  { icon:'✂️', title:'مراجعة المصروفات المتغيرة', body:'اطّلع على تصنيفات الشهر الأعلى إنفاقاً وقارنها بالشهر السابق. القرار لك في ما يستحق التعديل.' },
+  { icon:'🔁', title:'تنظيم الاشتراكات', body:'اجمع الاشتراكات والمصروفات المتكررة في قائمة واحدة وراجع ما تستخدمه فعلاً بين فترة وأخرى.' },
+  { icon:'🏦', title:'صندوق الطوارئ', body:'يمكنك حساب مبلغ يغطي 3 أو 6 أشهر من مصاريفك الأساسية كمرجع، وتحديد ما يناسب وضعك.' },
+  { icon:'🎯', title:'أهداف الادخار', body:'حدّد هدفاً بمبلغ وتاريخ، ويحسب التطبيق المساهمة الشهرية المطلوبة وموعد الوصول المتوقع.' },
+  { icon:'📆', title:'مراجعة المصروفات المتكررة', body:'راجع المصروفات المتكررة والأقساط القادمة دورياً حتى لا تتفاجأ بموعد استحقاق.' },
+  { icon:'📊', title:'قاعدة 50/30/20 كمرجع عام', body:'تقسيم شائع: 50% للأساسيات، 30% للرغبات، 20% للادخار والسداد الإضافي. عدّلها حسب وضعك.' }
 ];
 function renderSuggestions() {
   const container = document.getElementById('suggestions-list'); container.innerHTML = '';
@@ -1921,7 +1948,7 @@ async function renderGoalList() {
     const expectedDate = monthsNeeded!==null ? addMonthsLocal(todayLocal(), monthsNeeded) : 'حدد ادخار شهري';
     const progress = goal.target_amount>0 ? Math.min(100,(goal.current_amount/goal.target_amount)*100) : 0;
     const card = document.createElement('div'); card.className='card';
-    card.innerHTML = `<div class="card-row"><h3 style="color:var(--text);font-size:1rem;margin:0">${goal.name}</h3><button class="delete-btn goal-delete-btn">حذف الهدف</button></div>
+    card.innerHTML = `<div class="card-row"><h3 style="color:var(--text);font-size:1rem;margin:0">${esc(goal.name)}</h3><button class="delete-btn goal-delete-btn">حذف الهدف</button></div>
       <div class="stats-grid">
         <span class="label">الهدف:</span><span class="value">${fmtMoney(goal.target_amount)} ريال</span>
         <span class="label">الموجود:</span><span class="value">${fmtMoney(goal.current_amount)} ريال</span>
@@ -2259,7 +2286,7 @@ async function renderCalendar() {
       const events = await collectEventsForDate(dateStr);
       renderListInto('cal-events-list', events, ev => {
         const card = document.createElement('div'); card.className='card card-row';
-        card.innerHTML = `<div><div class="card-title">${ev.title}</div><div class="card-sub">${fmtMoney(ev.amount)} ريال</div></div>`;
+        card.innerHTML = `<div><div class="card-title">${esc(ev.title)}</div><div class="card-sub">${fmtMoney(ev.amount)} ريال</div></div>`;
         return card;
       }, 'لا يوجد أحداث في هذا اليوم');
     };
